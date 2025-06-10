@@ -205,4 +205,3 @@ export default function MarketStats({ title, data, performance, color }: MarketS
     </div>
   )
 }
-

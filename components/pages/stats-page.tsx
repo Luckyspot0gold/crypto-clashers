@@ -283,4 +283,3 @@ function calculatePerformance(candle: CandlestickData, previousCandles: Candlest
   // Use the proprietary Market Melee formula
   return marketMeleeFormula(candle, previousCandles, fighterId)
 }
-

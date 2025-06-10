@@ -232,4 +232,3 @@ export default function Achievements({ userStats }: AchievementsProps) {
     </>
   )
 }
-

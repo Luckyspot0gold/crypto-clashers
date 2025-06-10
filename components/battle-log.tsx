@@ -58,4 +58,3 @@ export default function BattleLog({ logs }: BattleLogProps) {
     </Card>
   )
 }
-

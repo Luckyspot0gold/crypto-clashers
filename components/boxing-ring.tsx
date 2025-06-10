@@ -1251,4 +1251,3 @@ export default function BoxingRing({
 
   return renderBoxingRing()
 }
-

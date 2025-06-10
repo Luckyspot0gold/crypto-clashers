@@ -80,4 +80,3 @@ export default function SoundControls({ soundEnabled, volume, onToggleSound, onV
     </div>
   )
 }
-

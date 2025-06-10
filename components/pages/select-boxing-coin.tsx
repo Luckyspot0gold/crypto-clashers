@@ -420,4 +420,3 @@ export default function SelectBoxingCoin({ onSelectFighters, onContinue }: Selec
     </div>
   )
 }
-

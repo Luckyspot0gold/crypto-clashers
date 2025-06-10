@@ -6,4 +6,3 @@ export interface CandlestickData {
   close: number
   volume: number
 }
-

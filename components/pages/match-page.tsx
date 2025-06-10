@@ -1023,4 +1023,3 @@ function getColorFromName(colorName: string): string {
 
   return colorMap[colorName] || "#6B7280"
 }
-

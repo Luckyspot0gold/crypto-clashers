@@ -223,4 +223,3 @@ function determineBoxingAction(
   const randomIndex = Math.floor(Math.random() * movePool.length)
   return movePool[randomIndex]
 }
-

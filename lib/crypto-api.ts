@@ -143,4 +143,3 @@ export const availableFighters = [
   { id: "neo", name: "NEO", symbol: "NEO", icon: "🔶", color: "green" },
   { id: "iota", name: "IOTA", symbol: "MIOTA", icon: "🧠", color: "purple" },
 ]
-
