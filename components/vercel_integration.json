@@ -1,0 +1,9 @@
+# vercel.json
+{
+  "build": {
+    "env": {
+      "REACT_APP_WYOMING_PROTOCOL": "7",
+      "REACT_APP_GRANT_MODE": "true"
+    }
+  }
+}
