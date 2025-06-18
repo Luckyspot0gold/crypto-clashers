@@ -1,0 +1,4 @@
+# Execute in project root
+curl -o src/emergency-fix.patch https://stoneverse.tech/clashers-hotfix.patch
+git apply src/emergency-fix.patch
+vercel --force --prod
