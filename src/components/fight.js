@@ -57,3 +57,7 @@ const startFight = async () => {
 
   // REST OF FIGHT LOGIC...
 }
+// ADD TO Fight.js
+<div className="market-impact">
+  BTC: {marketData.btcChange.toFixed(2)}% | ETH: {marketData.ethChange.toFixed(2)}%
+</div>
