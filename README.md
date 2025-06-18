@@ -35,3 +35,12 @@ graph LR
     C --> D[LocalStorage]
     D --> E[StoneVerse Verification]
     E --> F[Access Granted]
+   graph TD
+    A[Crypto Clashers] --> B[Avalanche Subnet]
+    A --> C[Aleo zkProofs]
+    A --> D[Google Cloud AI]
+    A --> E[Solana Mobile Pay]
+    A --> F[Chainlink VRF]
+    A --> G[Pi Network]
+    A --> H[Stellar Payments]
+    A --> I[Coinbase Base]
