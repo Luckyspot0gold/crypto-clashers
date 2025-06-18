@@ -16,3 +16,16 @@ body {
   background-attachment: fixed;
   background-size: cover;
 }
+// Fix in: src/styles/Global.css
+body {
+  background: radial-gradient(
+    circle at center, 
+    #1a1a2e 0%, 
+    #16213e 30%, 
+    #0f3460 100%
+  );
+  min-height: 100vh;  // ADD THIS LINE
+  height: 100%;       // ADD THIS LINE
+  margin: 0;          // ADD THIS LINE
+  overflow: hidden;   // ADD THIS LINE
+}
