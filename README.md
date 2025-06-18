@@ -1,5 +1,6 @@
-# KryptO
-
+# KryptO KO 
+## Crypto Clashers Boxing
+ *** Brought to you by StoneYard Games, Degan Stone McCrea & Justin William McCrea  ***
 *Automatically synced with your [v0.dev](https://v0.dev) deployments*
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/styrd-gaming/v0-krypt-o)
@@ -28,3 +29,9 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+graph LR
+    A[User Wallet] --> B{QuantumChat Auth}
+    B --> C[Signature Generation]
+    C --> D[LocalStorage]
+    D --> E[StoneVerse Verification]
+    E --> F[Access Granted]
