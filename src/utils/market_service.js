@@ -20,3 +20,12 @@ export async function getMarketData() {
     return { btc: 1.2, eth: -0.8, sol: 3.1 };
   }
 }
+// In src/utils/marketService.js
+export async function getMarketData() {
+  // If in demo mode, return fixed data
+  if (process.env.REACT_APP_GRANT_MODE === 'true') {
+    return { btc: 7.8, eth: -3.2, sol: 5.5 };
+  }
+
+  // ... rest of the real code
+}
