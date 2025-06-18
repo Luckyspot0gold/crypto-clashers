@@ -149,7 +149,7 @@ export default function LoginPage({
                 <Shield className="mr-2 h-5 w-5 text-green-400" />
                 Age Verification
               </CardTitle>
-              <CardDescription>You must be at least 18 years old to play Crypto Clashers™.</CardDescription>
+              <CardDescription>You must be at least 21 years old to play Crypto Clashers™.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
@@ -165,7 +165,7 @@ export default function LoginPage({
                   htmlFor="age-verification"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  I confirm that I am at least 18 years old
+                  I confirm that I am at least 21 years old
                 </label>
               </div>
             </CardContent>
@@ -198,7 +198,7 @@ export default function LoginPage({
                   <ol className="list-decimal pl-5 space-y-2 text-sm">
                     <li>
                       Crypto Clashers™ is a game that simulates boxing matches between cryptocurrencies based on their
-                      real-time market performance.
+                      real-time market performance. Users must be 21 years of age or older to place bets. 
                     </li>
                     <li>Players can place bets on which cryptocurrency they think will win the match.</li>
                     <li>
