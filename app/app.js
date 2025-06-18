@@ -14,3 +14,16 @@ index a1b2c3d..e4f5a6b 100644
 +      document.body.classList.add('grant-demo');
      }
    }, []);
+// ADD TO src/App.js
+useEffect(() => {
+  const stoneVerseBadge = document.createElement('div');
+  stoneVerseBadge.innerHTML = '⚡ STONEVERSE PROTOCOL 7';
+  stoneVerseBadge.style.position = 'fixed';
+  stoneVerseBadge.style.bottom = '10px';
+  stoneVerseBadge.style.right = '10px';
+  stoneVerseBadge.style.background = 'rgba(255, 215, 0, 0.2)';
+  stoneVerseBadge.style.padding = '5px 10px';
+  stoneVerseBadge.style.borderRadius = '10px';
+  stoneVerseBadge.style.fontWeight = 'bold';
+  document.body.appendChild(stoneVerseBadge);
+}, []);
