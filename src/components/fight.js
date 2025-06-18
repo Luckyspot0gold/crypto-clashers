@@ -41,3 +41,19 @@ const activateQuantumMode = () => {
     document.body.classList.remove('quantum-mode');
   }, 5000);
 };
+// Fix in: src/components/Fight.js
+const startFight = async () => {
+  // ADD MARKET INTEGRATION
+  const marketData = await getCryptoImpact();
+  
+  // Apply market effects (ADD THESE LINES)
+  const playerBoost = 1 + (marketData.btcChange / 100);
+  const opponentBoost = 1 + (marketData.ethChange / 100);
+  
+  setFighters({
+    player: { ...player, damage: player.damage * playerBoost },
+    opponent: { ...opponent, damage: opponent.damage * opponentBoost }
+  });
+
+  // REST OF FIGHT LOGIC...
+}
