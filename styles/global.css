@@ -1,0 +1,22 @@
+// src/styles/Global.css
+:root {
+  --stone-gold: #FFD700;
+  --wyoming-sky: #4a86e8;
+  --quantum-purple: #6f42c1;
+}
+
+body {
+  background: radial-gradient(
+    circle at center, 
+    #1a1a2e 0%, 
+    #16213e 30%, 
+    #0f3460 100%
+  );
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.character-select {
+  border: 3px solid var(--stone-gold);
+  box-shadow: 0 0 15px var(--quantum-purple);
+}
