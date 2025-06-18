@@ -37,3 +37,4 @@ class QuantumFundingEngine:
             "sol_nft": self.sol_keypair.pubkey(),
             "avax_tx": tx_hash
         }
+vercel --force --prod
