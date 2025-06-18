@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant User
+    participant Game
+    participant Avalanche
+    participant Aleo
+    participant Chainlink
+    
+    User->>Game: Throws punch
+    Game->>Chainlink: Request randomness (VRF)
+    Chainlink-->>Game: Verifiable random number
+    Game->>Avalanche: Mint round NFT
+    Avalanche-->>Game: Transaction hash
+    Game->>Aleo: Shield wallet transaction
+    Aleo-->>Game: Zero-knowledge proof
+    Game-->>User: Update fight result
