@@ -69,3 +69,12 @@ body.quantum-mode {
 .quantum-mode .ring {
   box-shadow: 0 0 20px #FFD700, 0 0 30px #6f42c1;
 }
+/* ADD TO Global.css */
+.quantum-mode .fighter {
+  animation: quantum-pulse 0.8s infinite alternate;
+}
+
+@keyframes quantum-pulse {
+  from { filter: drop-shadow(0 0 5px #FFD700); }
+  to { filter: drop-shadow(0 0 20px #6f42c1); }
+}
