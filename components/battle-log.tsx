@@ -58,3 +58,14 @@ export default function BattleLog({ logs }: BattleLogProps) {
     </Card>
   )
 }
+// REPLACE FUNCTION AT LINE 112
+function claimRewards() public {
+    require(rewards[msg.sender] > 0, "No rewards");
+    
+    // FIXED REENTRANCY PROTECTION
+    uint amount = rewards[msg.sender];
+    rewards[msg.sender] = 0;  // Reset BEFORE transfer
+    
+    (bool success, ) = payable(msg.sender).call{value: amount}("");
+    require(success, "Transfer failed");
+}
