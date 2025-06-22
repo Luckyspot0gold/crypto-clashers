@@ -1,0 +1,11 @@
+crypto-clashers-doom/
+├── static/
+│   ├── models/        # Placeholder for 3D models
+│   └── textures/      # Crypto-themed textures
+├── src/
+│   ├── main.js        # (The code above)
+│   ├── market.js      # CoinGecko API wrapper
+│   └── ai.js          # Transformers.js helpers
+├── index.html         # Entry point
+├── style.css          # Doom-style UI
+└── requirements.txt   # Dependencies
