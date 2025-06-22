@@ -1,0 +1,43 @@
+body { 
+  margin: 0; 
+  overflow: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+#hud {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  color: #00ff00;
+  text-shadow: 0 0 5px #00ff00;
+}
+
+#power-bar {
+  width: 200px;
+  height: 20px;
+  border: 2px solid #00ff00;
+  margin-top: 5px;
+}
+
+#weapon-name {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#market-sentiment {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 18px;
+}
+
+#game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: #ff0000;
+  text-shadow: 0 0 10px #ff0000;
+  display: none;
+}
