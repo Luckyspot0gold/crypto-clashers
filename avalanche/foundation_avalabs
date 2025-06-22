@@ -1,0 +1,18 @@
+import { ICTT } from '@avalabs/builderkit';
+ 
+function App() {
+  const tokens = [
+    // Array of tokens following the ICTTToken interface
+    // See /docs/builderkit/tokens for configuration details
+    [...]
+  ];
+ 
+  return (
+    <ICTT 
+      tokens={tokens}
+      token_in="0x1234..."  // Address of the input token
+      source_chain_id={43113}
+      destination_chain_id={173750}
+    />
+  );
+}
