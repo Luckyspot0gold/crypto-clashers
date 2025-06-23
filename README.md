@@ -44,3 +44,5 @@ graph LR
     A --> G[Pi Network]
     A --> H[Stellar Payments]
     A --> I[Coinbase Base]
+
+   https://huggingface.co/spaces/mcp/crypto-clashers
