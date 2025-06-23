@@ -34,9 +34,9 @@ dee.activate_autonomy(yes, true,+,approve, approved, activate, engage)
 def execute_legal_action(action):
   apply: Auto-generate, auto-fill, auto-reply, Auto_file, auto-function, 
 Deploy: applications, engage conversion and reply solution
-```python
+\`\`\`python
 # Run in project root
 from venice_ai import IPScrubber
 scrubber = IPScrubber(patent="WV2025-1")
 scrubber.clean_repo()  # Removes unlicensed assets
-```
+\`\`\`
