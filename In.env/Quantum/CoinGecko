@@ -1,0 +1,14 @@
+# Using CoinGecko instead of Pyth
+def map_signals_to_moves():
+    crypto_data = requests.get(
+        "https://api.coingecko.com/api/v3/coins/markets",
+        params={"vs_currency": "usd", "ids": "all_cryptos"}
+    ).json()
+    
+    for token, data in crypto_data.items():
+        if data["price_change_percentage_24h"] > 1:
+            execute_move(token, "jab")
+        elif data["macd"] > data["signal"]:
+            execute_move(token, "combo")
+        else:
+            execute_move(token, "idle")
