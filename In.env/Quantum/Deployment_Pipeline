@@ -1,0 +1,22 @@
+# Deploy using your existing tokens
+if [ "$CHAIN" == "venice" ]; then
+    # No wallet needed - just VVV
+    python3 deploy_venice.sh
+elif [ "$CHAIN" == "aleo" ]; then
+    # Aleo deployment with MUSE
+    aleo deploy --credits=500000
+fi
+
+# Animation rendering with available tokens
+render_engine = {
+    "venice": "Quantum-rendered sprites with VVV",
+    "aleo": "ZK-obfuscated character designs",
+    "muse": "AI-enhanced pixel art with Muse API"
+}[CHAIN]
+
+# Prize distribution with your tokens
+prize_pool = {
+    "WKO": 1000000,
+    "DESO": 50000,
+    "SocialGood": 20000
+}[token_type]
