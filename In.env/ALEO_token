@@ -1,0 +1,17 @@
+# Aleo deployment without token burn
+mkdir aleo-boxing
+cd aleo-boxing
+
+# Create program structure
+echo 'program boxing.wyoverse;
+record Boxer {
+    owner as address.private;
+    health as u8.private;
+    attack_power as u8.private;
+    defense_power as u8.private;
+}
+
+fn new_boxer:
+    input r0 as address.private;
+    cast 100u8 0u8 0u8 r0 into Boxer;
+    output Boxer;' > src/lib.aleo
