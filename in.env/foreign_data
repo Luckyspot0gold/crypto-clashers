@@ -1,0 +1,3 @@
+create foreign data wrapper wasm_wrapper
+  handler wasm_fdw_handler
+  validator wasm_fdw_validator;
