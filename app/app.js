@@ -27,3 +27,11 @@ useEffect(() => {
   stoneVerseBadge.style.fontWeight = 'bold';
   document.body.appendChild(stoneVerseBadge);
 }, []);
+`javascript
+import { startEventListeners } from '@/services/cryptoClashers'
+import simulationEngine from '@/lib/simulationEngine'
+
+if (typeof window !== 'undefined') {
+  startEventListeners(simulationEngine)
+}
+```
