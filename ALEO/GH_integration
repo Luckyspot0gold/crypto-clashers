@@ -1,0 +1,21 @@
+```bash
+# Push sprites to your repo
+cd wyoverse-boxing
+mkdir -p assets/sprites/{miners,ranchers,guardians,cowboys}
+
+# Add generated sprites
+cp ../sprites/miner.enc assets/sprites/miners/btc_boxer.enc
+cp ../sprites/rancher.enc assets/sprites/ranchers/wyo_boxer.enc
+cp ../sprites/indigenous.enc assets/sprites/guardians/link_boxer.enc
+cp ../sprites/cowboy.enc assets/sprites/cowboys/sol_boxer.enc
+
+# Commit with quantum signature
+git add assets/sprites/
+git commit -m "Wyoming Boxer Sprites v0.1"
+git push origin master
+```
+
+✅ **Sprites Pushed to GitHub**  
+Repo updated at https://github.com/Luckypot0gold/wyoverse-boxing
+
+---
