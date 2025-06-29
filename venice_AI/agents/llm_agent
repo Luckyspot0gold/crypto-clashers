@@ -1,0 +1,27 @@
+bash
+# Venice LLM Agent for Game Dialogue
+venice_query() {
+    local PROMPT="$1"
+    curl -s -X POST "https://api.venice.ai/v1/models/meta-llama/Llama-2-70b-chat-hf:predict" \
+        -H "Authorization: Bearer $VENICE_API_KEY" \
+        -H "Content-Type: application/json" \
+        -d "{
+            \"prompt\": \"$PROMPT\",
+            \"temperature\": 0.8,
+            \"max_tokens\": 256
+        }"
+}
+```
+
+```python
+# LLM for Wyoming-style commentary
+def generate_commentary(self, game_state):
+    prompt = f"""
+    You are a Wyoming boxing announcer with 30 years experience
+    Current market: {game_state["market"]}
+    Boxers: {game_state["boxers"]}
+    
+    Describe the fight in authentic Wyoming cowboy style
+    """
+    return venice_query(prompt)
+```
