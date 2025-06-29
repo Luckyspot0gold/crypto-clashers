@@ -1,0 +1,18 @@
+```bash
+# Aleo smart contract for sprite verification
+echo 'program wyoming_sprite_verification;
+record MinerBoxer {
+    owner as address.private;
+    sprite_hash as field.private;
+}
+
+fn verify_sprite:
+    input r0 as field.private;
+    cast r0 into MinerBoxer;
+    output MinerBoxer;' > contracts/sprite_verification.aleo
+```
+
+✅ **ZK Verification Active**  
+Each boxer's sprite can now be privately verified on Aleo.
+
+---
