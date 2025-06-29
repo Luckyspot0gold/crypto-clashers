@@ -1,0 +1,24 @@
+javascript
+// Supabase Edge Function: social-monitor.js
+import { TwitterAPI } from 'twitter-api-v2'
+import { createClient } from '@supabase/supabase-js'
+
+export default async (req) => {
+  const twitter = new TwitterAPI(process.env.TWITTER_BEARER)
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+  
+  // Track crypto/gaming hashtags
+  const stream = await twitter.v1.stream('tweets/search/stream', {
+    expansions: 'author_id',
+    'tweet.fields': 'public_metrics'
+  })
+  
+  stream.on('data', async tweet => {
+    await supabase.from('bill_knowledge').insert({
+      source: 'twitter',
+      content: tweet,
+      sentiment_score: analyzeSentiment(tweet.text)
+    })
+  })
+}
+```
