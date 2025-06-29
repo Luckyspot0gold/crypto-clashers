@@ -1,0 +1,15 @@
+sql
+-- Real-time market insights
+CREATE TABLE bill_knowledge (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  source TEXT CHECK(source IN ('twitter','cmc','base')),
+  content JSONB,
+  sentiment_score FLOAT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE bill_knowledge;
+```
+
+---
