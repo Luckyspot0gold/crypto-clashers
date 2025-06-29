@@ -1,0 +1,4 @@
+`bash
+# Run the full Bill Value Stack
+gcloud deployment-manager deployments create bill-value-engine \
+  --config bill-stack.yaml
