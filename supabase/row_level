@@ -1,0 +1,6 @@
+sql
+   -- Enable RLS on critical tables
+   ALTER TABLE player_wallets ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "User access" ON player_wallets
+   FOR SELECT USING (user_id = auth.uid());
+   ```
