@@ -1,0 +1,6 @@
+``bash
+# Create unified dataset
+gcloud config set project wyoverse-saloon
+bq mk --dataset market_data
+bq mk --table market_data.social_streams user_id:STRING,content:STRING,engagement:FLOAT
+```
