@@ -1,0 +1,38 @@
+**Market Signal Mapping:**
+```python
+# Boxer movement logic
+def execute_boxer_move(boxer, signal):
+    if signal["price_change"] > 1:
+        boxer.execute("jab")
+    elif signal["bollinger"] > signal["upper"]:
+        boxer.execute("hook")
+    elif signal["RSI"] > 70:
+        boxer.execute("uppercut")
+    elif signal["MACD"]["cross_up"]:
+        boxer.execute_combo(["jab", "hook", "uppercut"])
+```
+
+**Wyoming Animation Engine:**
+```javascript
+// clients/animation_engine.js
+class WyomingBoxingEngine {
+    _loadEncryptedSprites() {
+        const encrypted = fs.readFileSync('assets/sprites/boxers.enc');
+        return decryptSprites(encrypted, process.env.UNDEAD_KEY);
+    }
+    
+    executeMove(boxer, moveType) {
+        const frames = this.sprites[boxer.token][moveType];
+        frames.forEach((frame, index) => {
+            requestAnimationFrame(() => {
+                displayFrame(frame);
+                if (index === frames.length - 1) {
+                    this._checkForContact(boxer, moveType);
+                }
+            });
+        });
+    }
+}
+```
+
+---
