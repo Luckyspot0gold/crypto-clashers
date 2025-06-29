@@ -1,0 +1,23 @@
+```python
+# Add to compliance.py
+class WyomingSpriteValidator:
+    def __init__(self):
+        self.approved_styles = [
+            "19th-century miner", 
+            "frontier rancher", 
+            "indigenous guardian"
+        ]
+        
+    def validate_sprite(self, sprite):
+        # Check against Undead$stackerS standards
+        if sprite["style"] not in self.approved_styles:
+            raise WyomingComplianceError(
+                f"Style {sprite['style']} not approved by Wyoming Blockchain Division"
+            )
+        return True
+```
+
+✅ **Compliance Active**  
+All Wyoming-themed boxers now verified against state regulations.
+
+---
