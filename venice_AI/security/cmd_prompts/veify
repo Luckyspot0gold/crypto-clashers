@@ -1,0 +1,36 @@
+curl -X POST "https://cryptoclashers.games/functions/v1/executive-office" \
+  -H "Authorization: Bearer $VENICE_API_KEY" \
+  -d '{"activate": "true"}'
+
+# Activate AI Office Crew
+python3 -c "from ai_office_crew import Crew; crew = Crew(); crew.activate_all()"
+<button onclick="connectCoinbase()"><i class="fab fa-bitcoin"></i> Coinbase</button>
+<button onclick="connectPhantom()"><i class="fas fa-horse"></i> Phantom</button>
+<button onclick="connectDeso()"><i class="fab fa-ethereum"></i> DESO</button># Coinbase wallet fix
+if [ "$WALLET" == "coinbase" ]; then
+    python3 -c "from web3 import Web3; w3 = Web3(Web3.HTTPProvider('https://rpc.avalanchechain.com')); print(w3.isConnected())"
+fi
+
+# Phantom wallet fix
+if [ "$WALLET" == "phantom" ]; then
+    curl -X POST https://phantom.app/api/connection \
+      -d '{"network": "solana"}' \
+      -H "Content-Type: application/json"
+fi
+
+# DESO wallet fix
+if [ "$WALLET" == "deso" ]; then
+    python3 -c "from deso import Wallet; w = Wallet(); w.connect()"
+fi
+<script>
+    const wyomingSDK = new WyomingRealm({
+        apiKey: 'STYRD_XXXXXX',
+        domain: 'stoneyard.cash',
+        chain: 'solana'
+    });
+    
+    wyomingSDK.loadSprite('btc_miner', 'sprites/miner.png')
+    wyomingSDK.loadSprite('wyo_rancher', 'sprites/rancher.png')
+    wyomingSDK.loadSprite('link_guardian', 'sprites/guardian.png')
+    wyomingSDK.loadSprite('sol_cowboy', 'sprites/cowboy.png')
+</script>
