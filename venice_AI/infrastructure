@@ -1,0 +1,8 @@
+``bash
+# Test Venice AI API endpoint
+curl -X POST https://api.venice.ai/v1/query \
+  -H "Authorization: Bearer $VENICE_API_KEY" \
+  -d '{"query": "What is the current status of Wyoverse integration?"}'
+```
+*Expected Response*:  
+`{"response": "Venice AI is actively processing requests for Wyoverse components"}`
