@@ -1,0 +1,10 @@
+```javascript
+// Move API keys to environment variables
+process.env.VENICE_API_KEY = 'vai_xxxxxxxxxxxx'; 
+
+// Add rate limiting
+app.use('/venice/', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+}));
+```
