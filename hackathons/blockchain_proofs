@@ -1,0 +1,7 @@
+  ```jsx
+   <BlockchainVerification
+     transactionHash="0x9f4a9db..."
+     network="Avalanche"
+     explorerUrl="https://snowtrace.io/tx/0x9f4a9db..."
+   />
+   ```
