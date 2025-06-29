@@ -1,0 +1,70 @@
+ **Use Row-Level Security**  
+```sql
+CREATE POLICY "Fights are public" ON fights
+FOR SELECT USING (true);
+```
+
+2. **Optimize Performance**  
+```javascript
+// Use Supabase Storage for heavy data
+await supabase.storage
+  .from('fight-replays')
+  .upload(`match-${Date.now()}.json`, fightData)
+```
+
+3. **Add Leaderboards**  
+```sql
+SELECT winner, COUNT(*) as wins 
+FROM fights 
+GROUP BY winner 
+ORDER BY wins DESC 
+LIMIT 10;
+```
+
+---
+
+### 📦 Full Supabase Boxing Module  
+```javascript
+// utils/boxing-db.js
+import supabase from './supabase'
+
+export default {
+  async saveFight(result) {
+    return await supabase.from('fights').insert([result])
+  },
+  
+  async getLeaderboard(limit = 10) {
+    return await supabase
+      .from('fights')
+      .select('winner, count(*)')
+      .group('winner')
+      .order('count', { ascending: false })
+      .limit(limit)
+  },
+  
+  subscribeToFights(callback) {
+    return supabase
+      .channel('fights')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public' }, payload => {
+        callback(payload.new)
+      })
+      .subscribe()
+  }
+}
+```
+
+**Usage:**  
+```javascript
+import boxingDB from '../utils/boxing-db'
+
+// Save fight
+await boxingDB.saveFight({
+  winner: 'BTC_BOXER',
+  loser: 'ETH_BOXER',
+  damage: 230,
+  round: 5
+})
+
+// Get leaderboard
+const { data } = await boxingDB.getLeaderboard()
+```
