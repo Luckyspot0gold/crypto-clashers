@@ -1,0 +1,120 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SUPPORTED_CRYPTOS, type CryptoSymbol } from "@/lib/crypto-data"
+
+interface CryptoSelectorProps {
+ onSelect: (crypto1: CryptoSymbol, crypto2: CryptoSymbol) => void
+ selectedCrypto1?: CryptoSymbol
+ selectedCrypto2?: CryptoSymbol
+}
+
+export function CryptoSelector({ onSelect, selectedCrypto1, selectedCrypto2 }: CryptoSelectorProps) {
+ const [fighter1, setFighter1] = useState<CryptoSymbol | null>(selectedCrypto1 || null)
+ const [fighter2, setFighter2] = useState<CryptoSymbol | null>(selectedCrypto2 || null)
+
+ const handleStartFight = () => {
+   if (fighter1 && fighter2 && fighter1 !== fighter2) {
+     onSelect(fighter1, fighter2)
+   }
+ }
+
+ const getCryptoEmoji = (symbol: CryptoSymbol) => {
+   const emojiMap: Record<CryptoSymbol, string> = {
+     BTC: "₿",
+     ETH: "Ξ",
+     SOL: "◎",
+     AVAX: "🔺",
+     LINK: "🔗",
+     LTC: "Ł",
+     XLM: "⭐",
+     HBAR: "♦",
+     PI: "π",
+     AERO: "✈️",
+     ALEO: "🔒",
+     VVV: "📈",
+     DESO: "🌐",
+     MUSE: "🎵",
+     PEPE: "🐸",
+     TOSHI: "🎌",
+     SHIB: "🐕",
+     DOGE: "🐶",
+   }
+   return emojiMap[symbol] || "💰"
+ }
+
+ return (
+   <Card className="w-full max-w-4xl mx-auto">
+     <CardHeader>
+       <CardTitle className="text-center">Choose Your Fighters</CardTitle>
+     </CardHeader>
+     <CardContent className="space-y-6">
+       <div className="grid grid-cols-2 gap-6">
+         {/* Fighter 1 Selection */}
+         <div>
+           <h3 className="text-lg font-semibold mb-3 text-center text-blue-600">Fighter 1</h3>
+           <div className="grid grid-cols-3 gap-2">
+             {SUPPORTED_CRYPTOS.map((crypto) => (
+               <Button
+                 key={`f1-${crypto}`}
+                 variant={fighter1 === crypto ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => setFighter1(crypto)}
+                 disabled={fighter2 === crypto}
+                 className="text-xs"
+               >
+                 {getCryptoEmoji(crypto)} {crypto}
+               </Button>
+             ))}
+           </div>
+           {fighter1 && (
+             <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg text-center">
+               <div className="text-2xl">{getCryptoEmoji(fighter1)}</div>
+               <div className="font-semibold">{fighter1}</div>
+             </div>
+           )}
+         </div>
+
+         {/* Fighter 2 Selection */}
+         <div>
+           <h3 className="text-lg font-semibold mb-3 text-center text-red-600">Fighter 2</h3>
+           <div className="grid grid-cols-3 gap-2">
+             {SUPPORTED_CRYPTOS.map((crypto) => (
+               <Button
+                 key={`f2-${crypto}`}
+                 variant={fighter2 === crypto ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => setFighter2(crypto)}
+                 disabled={fighter1 === crypto}
+                 className="text-xs"
+               >
+                 {getCryptoEmoji(crypto)} {crypto}
+               </Button>
+             ))}
+           </div>
+           {fighter2 && (
+             <div className="mt-3 p-3 bg-red-50 dark:bg-red-950 rounded-lg text-center">
+               <div className="text-2xl">{getCryptoEmoji(fighter2)}</div>
+               <div className="font-semibold">{fighter2}</div>
+             </div>
+           )}
+         </div>
+       </div>
+
+       <div className="text-center">
+         <Button
+           onClick={handleStartFight}
+           disabled={!fighter1 || !fighter2 || fighter1 === fighter2}
+           size="lg"
+           className="px-8"
+         >
+           🥊 Start the Fight!
+         </Button>
+       </div>
+     </CardContent>
+   </Card>
+ )
+}
+
