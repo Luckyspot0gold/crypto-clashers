@@ -1,0 +1,5 @@
+``html
+   <div class="press">
+     <img src="techcrunch-logo.png" alt="TechCrunch">
+     <img src="coindesk-logo.png" alt="CoinDesk">
+   </div>
