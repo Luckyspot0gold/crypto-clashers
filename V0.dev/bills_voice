@@ -1,0 +1,6 @@
+`bash
+# Google Cloud Text-to-Speech
+gcloud ml speech synthesize --text="$RESPONSE" \
+  --voice="en-US-Wavenet-D" \
+  --output-file="bill_response.mp3"
+```
