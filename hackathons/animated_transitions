@@ -1,0 +1,5 @@
+ ```css
+   /* Add to global CSS */
+   .screen-transition {
+     animation: pixelReveal 1.5s ease;
+   }
