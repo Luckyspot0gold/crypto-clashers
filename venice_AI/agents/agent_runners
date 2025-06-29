@@ -1,0 +1,23 @@
+`bash
+# Quantum-secure deployment runner
+deploy_runner() {
+    echo "Initializing quantum runner with VVV"
+    python3 -c "import venice; venice.run_quantum('src/runner.py')"
+    
+    # Start worker process
+    echo "Starting Aleo worker"
+    aleo run worker.js --token $VVV_TOKEN
+}
+```
+
+```python
+# Worker for Sprite Generation
+class SpriteWorker:
+    def __source(self, boxer_type):
+        # Use Muse API for Wyoming miner style
+        prompt = f"""
+        8-bit Wyoming miner boxer, {boxer_type} crypto token
+        Holding pickaxe in boxing stance, 19th-century frontier style
+        """
+        return generate_sprite(prompt, model="muse-v2")
+```
