@@ -1,0 +1,89 @@
+export interface CryptoData {
+ symbol: string
+ price: number
+ change24h: number
+ volume: number
+ timestamp: number
+}
+
+export interface TechnicalIndicators {
+ rsi: number
+ macd: {
+   macd: number
+   signal: number
+   histogram: number
+ }
+ ema200: number
+ candlestick: {
+   open: number
+   high: number
+   low: number
+   close: number
+   pattern: "bullish" | "bearish" | "neutral"
+ }
+}
+
+export const SUPPORTED_CRYPTOS = [
+ "BTC",
+ "ETH",
+ "SOL",
+ "AVAX",
+ "LINK",
+ "LTC",
+ "XLM",
+ "HBAR",
+ "PI",
+ "AERO",
+ "ALEO",
+ "VVV",
+ "DESO",
+ "MUSE",
+ "PEPE",
+ "TOSHI",
+ "SHIB",
+ "DOGE",
+] as const
+
+export type CryptoSymbol = (typeof SUPPORTED_CRYPTOS)[number]
+
+// Mock WebSocket connection for demo
+export class CryptoDataService {
+ private listeners: ((data: CryptoData) => void)[] = []
+ private interval: NodeJS.Timeout | null = null
+
+ subscribe(callback: (data: CryptoData) => void) {
+   this.listeners.push(callback)
+
+   if (!this.interval) {
+     this.startMockData()
+   }
+ }
+
+ unsubscribe(callback: (data: CryptoData) => void) {
+   this.listeners = this.listeners.filter((cb) => cb !== callback)
+
+   if (this.listeners.length === 0 && this.interval) {
+     clearInterval(this.interval)
+     this.interval = null
+   }
+ }
+
+ private startMockData() {
+   this.interval = setInterval(() => {
+     SUPPORTED_CRYPTOS.forEach((symbol) => {
+       const mockData: CryptoData = {
+         symbol,
+         price: Math.random() * 100000 + 1000,
+         change24h: (Math.random() - 0.5) * 20,
+         volume: Math.random() * 1000000000,
+         timestamp: Date.now(),
+       }
+
+       this.listeners.forEach((callback) => callback(mockData))
+     })
+   }, 1000)
+ }
+}
+
+export const cryptoService = new CryptoDataService()
+
