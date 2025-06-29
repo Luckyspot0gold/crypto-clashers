@@ -1,0 +1,29 @@
+1. **Animated Transitions**
+   ```css
+   /* Add to global CSS */
+   .screen-transition {
+     animation: pixelReveal 1.5s ease;
+   }
+   
+   @keyframes pixelReveal {
+     0% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+     100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+   }
+   ```
+
+2. **Signature Sound Design**
+   ```javascript
+   // Western-themed audio feedback
+   playSound('spur_jingle.wav') // On successful actions
+   playSound('tumbleweed_pass.wav') // During loading
+   ```
+
+3. **Consistent Western Typography**
+   ```css
+   /* Import and apply */
+   @import url('https://fonts.googleapis.com/css2?family=Western&display=swap');
+   
+   body {
+     font-family: 'Western', 'Courier New', monospace;
+   }
+   ```
