@@ -1,0 +1,21 @@
+``javascript
+// clients/animation_engine.js
+class WyomingBoxingEngine {
+    _loadEncryptedSprites() {
+        const encrypted = fs.readFileSync('assets/sprites/boxers.enc');
+        return decryptSprites(encrypted, process.env.UNDEAD_KEY);
+    }
+    
+    executeMove(boxer, moveType) {
+        const frames = this.sprites[boxer.token][moveType];
+        frames.forEach((frame, index) => {
+            requestAnimationFrame(() => {
+                displayFrame(frame);
+                if (index === frames.length - 1) {
+                    this._checkForContact(boxer, moveType);
+                }
+            });
+        });
+    }
+}
+```
