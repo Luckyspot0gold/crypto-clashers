@@ -1,0 +1,6 @@
+  ```jsx
+   // Wrap every major component
+   <ErrorBoundary fallback={<SaloonErrorScreen />}>
+     <BarKeepBillAI />
+   </ErrorBoundary>
+   ```
