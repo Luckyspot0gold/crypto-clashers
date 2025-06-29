@@ -1,0 +1,13 @@
+```mermaid
+graph TD
+    A[Frontend] --> B[Bolt.new]
+    A --> C[Supabase]
+    A --> D[Google Cloud]
+    B --> E[Payment Processing]
+    C --> F[User Data]
+    D --> G[AI Services]
+    C --> H[Analytics]
+    D --> I[Dialogflow]
+    E --> J[KryptoGold Purchases]
+    F --> K[Player Profiles]
+    G --> L[Bar Keep Bill AI]
