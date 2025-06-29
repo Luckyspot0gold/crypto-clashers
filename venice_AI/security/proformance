@@ -1,0 +1,5 @@
+ Add caching to market predictions
+@cache.memoize(timeout=60)
+def get_market_prediction(symbol):
+    return venice_ai.query(f"Predict next 5 minutes for {symbol}")
+```
