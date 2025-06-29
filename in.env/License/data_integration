@@ -1,0 +1,13 @@
+`mermaid
+graph LR
+    B[Bar Keep Bill] --> C[Google Cloud BigQuery]
+    B --> S[Supabase Realtime DB]
+    B --> A[APIs]
+    C --> G[Social: Twitter/X, TikTok, LinkedIn]
+    S --> F[Facebook Graph]
+    A --> CMC[CoinMarketCap]
+    A --> CS[CoinStats]
+    A --> CB[Coinbase/Luckysnagbags.cb.id]
+    A --> BSC[Base Chain]
+    B --> O[Output: Wyoverse Pioneer]
+```
