@@ -1,0 +1,5 @@
+   ```bash
+   # Add Lighthouse CI
+   npm install -D @lhci/cli
+   lhci autorun --collect.url=https://your-url.com
+   ```
