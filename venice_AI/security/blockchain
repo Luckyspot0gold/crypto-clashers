@@ -1,0 +1,7 @@
+`solidity
+// Ensure KryptoGold rewards in combat contract
+function awardKryptoGold(address winner, uint amount) public {
+    require(msg.sender == combatAddress, "Unauthorized");
+    kryptoGold.mint(winner, amount);
+    emit RewardDistributed(winner, amount);
+}
