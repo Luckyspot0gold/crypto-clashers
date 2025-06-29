@@ -1,0 +1,4 @@
+``javascript
+   // Play on page load
+   new Audio('spurs_jingle.wav').play();
+   ```
