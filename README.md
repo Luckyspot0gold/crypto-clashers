@@ -44,5 +44,6 @@ graph LR
     A --> G[Pi Network]
     A --> H[Stellar Payments]
     A --> I[Coinbase Base]
-
+          bolt.new
+          supabase
    https://huggingface.co/spaces/mcp/crypto-clashers
