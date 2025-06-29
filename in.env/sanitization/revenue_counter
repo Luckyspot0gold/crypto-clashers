@@ -1,0 +1,7 @@
+ ```jsx
+   // Real-time updating counter
+   <RevenueCounter 
+     baseAmount={307.90} 
+     liveApi="https://cryptoclashers.games/api/revenue" 
+   />
+   ```
