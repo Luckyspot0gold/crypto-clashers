@@ -1,0 +1,38 @@
+``jsx
+// components/WalletConnect.js
+export default function WalletConnect() {
+  return (
+    <div className="wallet-grid">
+      <WalletButton 
+        name="DESO" 
+        onClick={() => window.open('https://deso.org/', '_blank')}
+        icon="/deso-logo.png"
+      />
+      <WalletButton 
+        name="Muse" 
+        onClick={() => window.open('https://muse.place/', '_blank')}
+        icon="/muse-logo.png"
+      />
+      {/* Other wallets */}
+    </div>
+  )
+}
+```
+
+---
+
+### ⚙️ Core Integration Architecture
+```mermaid
+graph TD
+    A[Frontend] --> B[Bolt.new]
+    A --> C[Supabase]
+    A --> D[Google Cloud]
+    B --> E[Payment Processing]
+    C --> F[User Data]
+    D --> G[AI Services]
+    C --> H[Analytics]
+    D --> I[Dialogflow]
+    E --> J[KryptoGold Purchases]
+    F --> K[Player Profiles]
+    G --> L[Bar Keep Bill AI]
+```
