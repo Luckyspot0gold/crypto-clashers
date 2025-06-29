@@ -1,0 +1,20 @@
+javascript
+// Venice AI Integration Status (add to your admin dashboard)
+const veniceStatus = {
+  core: {
+    online: true,
+    lastPing: new Date().toISOString(),
+    components: ["BarKeepBill", "MarketPredictor", "CombatAI"]
+  },
+  processing: {
+    currentTasks: 42,
+    avgResponseTime: 320,
+    errorRate: 0.7
+  },
+  blockchain: {
+    wyoTransactions: 127,
+    nftMigrations: 19,
+    kryptoGold: 8945
+  }
+};
+```
