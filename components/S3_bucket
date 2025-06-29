@@ -1,0 +1,37 @@
+# 1. Generate S3 policy
+cat > s3-policy.json << 'EOL'
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::cryptoclashers.games/*",
+      "Condition": {
+        "StringLike": {
+          "aws:arn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/venice-sdk"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::cryptoclashers.games/*",
+      "Condition": {
+        "StringLike": {
+          "aws:arn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/venice-sdk"
+        }
+      }
+    }
+  ]
+}
+EOL
+
+# 2. Apply policy
+aws s3api put-bucket-policy \
+  --bucket "cryptoclashers.games" \
+  --policy file://s3-policy.json
+
+# Expected: "✓ Policy applied"
