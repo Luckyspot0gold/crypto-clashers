@@ -1,0 +1,11 @@
+```python
+# Boxer movement logic
+def execute_boxer_move(boxer, signal):
+    if signal["price_change"] > 1:
+        boxer.execute("jab")
+    elif signal["bollinger"] > signal["upper"]:
+        boxer.execute("hook")
+    elif signal["RSI"] > 70:
+        boxer.execute("uppercut")
+    elif signal["MACD"]["cross_up"]:
+        boxer.execute_combo(["jab", "hook", "uppe
