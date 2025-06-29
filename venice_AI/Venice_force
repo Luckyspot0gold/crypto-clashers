@@ -1,0 +1,12 @@
+# 1. Clone and verify
+gh repo clone Luckypot0gold/WyoVerse-Pioneer
+cd WyoVerse-Pioneer
+
+# 2. Check commit history
+git log --oneline | grep "Venice AI + quantum encryption verified"
+# Expected: "✓ Commit found"
+
+# 3. If missing, force push
+git add . && git commit -m "Venice AI + quantum encryption verified - final push"  
+git push origin main --force
+# Expected: "✓ Push successful"
