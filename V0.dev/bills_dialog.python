@@ -1,0 +1,22 @@
+python
+def generate_bill_response(query, user_context):
+    # Retrieve latest knowledge
+    knowledge = supabase.rpc('get_relevant_knowledge', {'query': query})
+    
+    # Generate response
+    response = f"Well howdy partner! {random.choice(SALOON_GREETINGS)} "
+    
+    if 'price' in query:
+        coin = extract_coin(query)
+        response += f"Now that {coin}... last I heard it was trading at {get_price(coin)} "
+        response += f"with {get_sentiment(coin)} sentiment from the fellas."
+        
+    elif 'land' in query:
+        response += "The land rush continues! "
+        response += f"Prime parcels in {random.choice(LAND_LOCATIONS)} going for {get_land_price()} "
+        response += "gold nuggets just yesterday."
+        
+    # Add whiskey wisdom
+    response += f" {random.choice(WHISKEY_WISDOM)}"
+    return response
+```
