@@ -1,0 +1,33 @@
+mermaid
+graph TD
+  A[Frontend] --> B[Avalanche Blockchain]
+  A --> C[Venice AI]
+  A --> D[Supabase]
+  B --> E[Live Price Feeds]
+  B --> F[Game Event Processing]
+  C --> G[Market Predictions]
+  C --> H[Bar Keep Bill NPC]
+  D --> I[User Profiles]
+  D --> J[Historical Data]
+  
+  subgraph CryptoClashers.games
+    K[Boxing Matches] --> F
+    L[NFT Sales] --> F
+  end
+```
+`bash
+npm install avalanche@^3.14 venice-sdk@^2.3 @supabase/supabase-js@^2.4
+```
+env
+# .env.local
+AVALANCHE_NETWORK=mainnet
+AVAX_API_KEY=your_api_key
+VENICE_API_KEY=your_venice_key
+SUPABASE_URL=your_project_url
+SUPABASE_KEY=your_anon_key
+CRYPTO_CLASHERS_ADDRESS=0x...
+```
+`bash
+vercel env pull .env.local
+vercel deploy --prod
+```
