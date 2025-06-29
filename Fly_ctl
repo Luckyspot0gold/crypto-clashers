@@ -1,0 +1,26 @@
+1. Install [flyctl](https://fly.io/docs/hands-on/install-flyctl/)  
+2. In repo directory:  
+   ```bash
+   fly launch  # Follow prompts
+   fly deploy
+   ```  
+
+#### **Option C: GitHub Pages** (Static frontends only)  
+For web-based projects:  
+1. Enable **GitHub Pages** in repo settings  
+2. Set branch to `gh-pages` or `main`  
+
+---
+
+### 🤖 **Step 3: Integrate with Discord**  
+1. **For Discord Bots**:  
+   - Use `discord.py` + host on **Render** or **Fly.io**  
+   - Set `DISCORD_TOKEN` in host's environment variables  
+2. **For Discord Notifications**:  
+   - Use webhooks to post messages:  
+   ```python
+   import requests
+   requests.post("DISCORD_WEBHOOK_URL", json={"content": "Hello from Chipy!"})
+   ```
+
+---
