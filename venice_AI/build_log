@@ -1,0 +1,7 @@
+`bash
+# Check recent build activity
+grep -r "venice" ./build-logs/*.log | tail -n 20
+
+# Verify integration points
+find . -name "*.js" -exec grep -l "VeniceAI" {} +
+```
