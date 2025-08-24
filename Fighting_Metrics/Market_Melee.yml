@@ -1,0 +1,508 @@
+// =============================== // CryptoClashers Combat v1.1 // Upgrades: human controls, combos, hit-sparks, camera shake, // KO events → webhook, replay recorder, 432Hz tempo hooks. // Files are delimited with ---FILENAME--- separators. // ===============================
+
+---package.json--- { "name": "crypto-clash", "version": "0.1.1", "private": true, "scripts": { "dev": "vite", "build": "tsc && vite build", "preview": "vite preview", "test": "node --test", "replay": "node scripts/replay.js ./replays/last.json" }, "devDependencies": { "typescript": "^5.5.3", "vite": "^5.4.0" }, "type": "module" }
+
+---index.html--- <!doctype html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crypto Clashers – StoneYard Arena</title>
+    <style>
+      html,body { margin:0; background:#0b0d10; color:#e5e7eb; font-family:system-ui; }
+      #hud { position:fixed; top:8px; left:8px; right:8px; display:flex; justify-content:space-between; font-weight:700; gap:12px; align-items:center; }
+      #legend { opacity: .8; font-weight:500; font-size:12px }
+      canvas { display:block; margin:32px auto; border:1px solid #222; background:#0f1318; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">
+      <div id="leftLabel">AVAX Bull</div>
+      <div id="timer">99</div>
+      <div id="rightLabel">SOL Bear</div>
+      <div id="legend">P1: WASD move, J=Jab K=Cross L=Hook ; I=Block U=Parry ; Shift=Dodge</div>
+    </div>
+    <canvas id="arena" width="960" height="540"></canvas>
+    <audio id="sfx-jab" src="/sfx/jab.wav" preload="auto"></audio>
+    <audio id="sfx-hit" src="/sfx/hit.wav" preload="auto"></audio>
+    <audio id="sfx-ko"  src="/sfx/ko.wav" preload="auto"></audio>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>---src/types.ts--- export type Arm = 'left' | 'right'; export type Move = 'idle' | 'walkF' | 'walkB' | 'jab' | 'cross' | 'hook' | 'uppercut' | 'block' | 'parry' | 'dodge'; export type Stance = 'orthodox' | 'southpaw';
+
+export interface BoxerState { name: string; x: number; y: number; vx: number; facing: 1 | -1; stance: Stance; health: number; stamina: number; stunMs: number; guard: boolean; parryWindowMs: number; currentMove: Move; moveTimerMs: number; left: { angle: number; ext: number; state: Move }; right:{ angle: number; ext: number; state: Move }; armLen: number; reachBonus: number; invulnMs: number; alive: boolean; combo: ComboState; }
+
+export interface ComboRule { name: string; chain: Move[]; windowMs: number; bonusDmg: number; } export interface ComboState { recent: Move[]; timer: number; activeName?: string; }
+
+export interface Intent { walk: -1 | 0 | 1; action?: { arm?: Arm; move: Move }; } export interface Hitbox { x: number; y: number; w: number; h: number; } export interface PunchSpec { dmg: number; startMs: number; activeMs: number; endMs: number; angle: number; ext: number; pushback: number; staminaCost: number; guardBreak: number; critChance: number; } export interface MarketTick { volPct: number; skew: number; speed: number; }
+
+export interface HitEvent { atk: string; def: string; move: Move; dmg: number; t: number; } export interface KOEvent  { winner: string; loser: string; t: number; }
+
+---src/engine.ts--- export class Engine { private last = 0; private acc = 0; constructor(private stepMs: number, private update: (dt: number, t:number)=>void, private render: ()=>void) {} start() { let tms = 0; const loop = (t: number) => { if (!this.last) this.last = t; const delta = t - this.last; this.last = t; this.acc += delta; tms += delta; while (this.acc >= this.stepMs) { this.update(this.stepMs, tms); this.acc -= this.stepMs; } this.render(); requestAnimationFrame(loop); }; requestAnimationFrame(loop); } }
+
+---src/boxer.ts--- import { Arm, BoxerState, ComboRule, Intent, Move } from './types';
+
+export function createBoxer(name: string, x: number, facing: 1|-1): BoxerState { return { name, x, y: 420, vx: 0, facing, stance: 'orthodox', health: 100, stamina: 100, stunMs: 0, guard: false, parryWindowMs: 0, currentMove: 'idle', moveTimerMs: 0, left:  { angle: -45, ext: 0.5, state: 'idle' }, right: { angle:  45, ext: 0.5, state: 'idle' }, armLen: 52, reachBonus: 0, invulnMs: 0, alive: true, combo: { recent: [], timer: 0 } }; }
+
+export const MOVES: Record<Move, Partial<{speed:number; dur:number; stam:number;}>> = { idle: { speed: 0, dur: 150, stam: 0 }, walkF:{ speed: 0.18, dur: 60, stam: 0.3 }, walkB:{ speed: -0.14, dur: 60, stam: 0.25 }, block:{ speed: 0, dur: 300, stam: 0.5 }, parry:{ speed: 0, dur: 180, stam: 0.6 }, dodge:{ speed: 0.6, dur: 160, stam: 1.2 }, jab:  { speed: 0, dur: 220, stam: 2.0 }, cross:{ speed: 0, dur: 300, stam: 3.5 }, hook: { speed: 0, dur: 360, stam: 4.0 }, uppercut:{speed:0, dur: 380, stam: 4.5 }, };
+
+export const COMBOS: ComboRule[] = [ { name:'1-2 (Jab→Cross)', chain:['jab','cross'], windowMs: 420, bonusDmg: 4 }, { name:'Cross→Hook', chain:['cross','hook'], windowMs: 500, bonusDmg: 5 }, { name:'Hook→Uppercut', chain:['hook','uppercut'], windowMs: 520, bonusDmg: 6 }, ];
+
+export function applyIntent(b: BoxerState, intent: Intent) { if (!b.alive) return; if (intent.walk !== 0 && b.stunMs <= 0 && b.currentMove !== 'block') { b.vx = (intent.walk * b.facing) * 160/1000; } else { b.vx = 0; } if (intent.action && b.stunMs <= 0) { const { move, arm } = intent.action; startMove(b, move, arm); } }
+
+export function updateBoxer(b: BoxerState, dt: number) { if (!b.alive) return; b.x += b.vx * dt; b.x = Math.max(80, Math.min(880, b.x)); b.moveTimerMs = Math.max(0, b.moveTimerMs - dt); b.stunMs = Math.max(0, b.stunMs - dt); b.parryWindowMs = Math.max(0, b.parryWindowMs - dt); b.invulnMs = Math.max(0, b.invulnMs - dt); b.combo.timer = Math.max(0, b.combo.timer - dt);
+
+if (b.currentMove === 'idle') b.stamina = Math.min(100, b.stamina + (0.06 * dt));
+
+const L = b.left, R = b.right; const set = (arm: Arm, angle: number, ext: number, state: Move) => { const limb = arm==='left'?L:R; limb.angle=angle; limb.ext=ext; limb.state=state; }; switch (b.currentMove) { case 'idle': set('left', -45, 0.5, 'idle'); set('right', 45, 0.5, 'idle'); break; case 'block': set('left', -25, 0.35, 'block'); set('right', 25, 0.35, 'block'); b.guard = true; break; case 'parry': set('left', -10, 0.8, 'parry'); set('right', 10, 0.8, 'parry'); break; case 'dodge': b.invulnMs = Math.max(b.invulnMs, 90); break; case 'jab': set('left', b.facing===1?-15:15, 1.0, 'jab'); break; case 'cross': set('right', b.facing===1?20:-20, 1.0, 'cross'); break; case 'hook': set('right', b.facing===1?95:-95, 0.95, 'hook'); break; case 'uppercut': set('right', b.facing===1?60:-60, 1.0, 'uppercut'); break; } if (b.moveTimerMs <= 0 && b.currentMove !== 'idle') { b.guard=false; b.currentMove='idle'; } if (b.health <= 0) { b.alive=false; b.currentMove='idle'; } }
+
+export function startMove(b: BoxerState, move: Move, arm?: Arm) { const spec = MOVES[move]; if (!spec) return; if (b.stamina < (spec.stam ?? 0)) return; b.stamina -= (spec.stam ?? 0); b.currentMove = move; b.moveTimerMs = spec.dur ?? 200; if (move === 'parry') b.parryWindowMs = 120; if (move === 'block') b.guard = true; // combo memory b.combo.recent.push(move); b.combo.timer = 600; // 0.6s window to chain if (b.combo.recent.length > 3) b.combo.recent.shift(); }
+
+export function activeComboBonus(b: BoxerState): number { if (b.combo.timer <= 0) { b.combo.recent = []; b.combo.activeName = undefined; return 0; } for (const rule of COMBOS) { const end = b.combo.recent.slice(-rule.chain.length); if (end.length === rule.chain.length && end.every((m,i)=>m===rule.chain[i])) { b.combo.activeName = rule.name; return rule.bonusDmg; } } b.combo.activeName = undefined; return 0; }
+
+---src/combat.ts--- import { Arm, BoxerState, Hitbox, Move, PunchSpec } from './types'; import { activeComboBonus } from './boxer';
+
+export const PUNCH: Record<Move, PunchSpec> = { idle:{dmg:0,startMs:0,activeMs:0,endMs:0,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, walkF:{dmg:0,startMs:0,activeMs:0,endMs:0,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, walkB:{dmg:0,startMs:0,activeMs:0,endMs:0,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, block:{dmg:0,startMs:0,activeMs:0,endMs:0,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, parry:{dmg:0,startMs:50,activeMs:90,endMs:40,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, dodge:{dmg:0,startMs:0,activeMs:0,endMs:0,angle:0,ext:0,pushback:0,staminaCost:0,guardBreak:0,critChance:0}, jab: {dmg:6,startMs:80,activeMs:90,endMs:50,angle:15,ext:1.0,pushback:8,staminaCost:2.0,guardBreak:4,critChance:0.05}, cross:{dmg:10,startMs:120,activeMs:110,endMs:70,angle:20,ext:1.0,pushback:11,staminaCost:3.5,guardBreak:6,critChance:0.10}, hook:{dmg:12,startMs:160,activeMs:120,endMs:80,angle:95,ext:0.95,pushback:12,staminaCost:4.0,guardBreak:7,critChance:0.10}, uppercut:{dmg:14,startMs:180,activeMs:130,endMs:90,angle:60,ext:1.0,pushback:14,staminaCost:4.5,guardBreak:9,critChance:0.12} };
+
+export function torsoBox(b: BoxerState): Hitbox { return { x: b.x - 22, y: b.y - 90, w: 44, h: 90 }; } export function fistPos(b: BoxerState, arm: Arm): {x:number;y:number} { const limb = arm === 'left' ? b.left : b.right; const shoulderX = b.x + (arm==='left' ? -18 : 18); const shoulderY = b.y - 70; const rad = (limb.angle * Math.PI)/180 * (b.facing); const len = b.armLen * limb.ext + b.reachBonus; return { x: shoulderX + Math.cos(rad)*len, y: shoulderY + Math.sin(rad)*len }; } function rectContains(h: Hitbox, px:number, py:number){ return (px>=h.x && px<=h.x+h.w && py>=h.y && py<=h.y+h.h); }
+
+export function resolveRound(dt: number, A: BoxerState, B: BoxerState, onHit: (atk: BoxerState, def: BoxerState, move: Move, dmg: number)=>void) { if (!A.alive || !B.alive) return; const minGap = 30; if (Math.abs(A.x - B.x) < minGap) { const mid=(A.x+B.x)/2; A.x=mid-minGap/2; B.x=mid+minGap/2; } A.x = Math.max(80, Math.min(880, A.x)); B.x = Math.max(80, Math.min(880, B.x));
+
+for (const [atk,def] of [[A,B],[B,A]] as const) { const m = atk.currentMove; const spec = PUNCH[m]; if (!spec || spec.dmg<=0) continue; const active = (atk.moveTimerMs <= spec.endMs) && (atk.moveTimerMs >= spec.endMs - spec.activeMs); if (!active) continue; if (atk.invulnMs>0) continue;
+
+const fist = fistPos(atk, 'right'); // simplify: right-driven offense; extend per-move later
+const torso = torsoBox(def);
+if (!rectContains(torso, fist.x, fist.y)) continue;
+
+// Parry check
+if (def.parryWindowMs > 0) { def.parryWindowMs = 0; atk.stunMs = Math.max(atk.stunMs, 240); continue; }
+
+// Damage math
+let dmg = spec.dmg + activeComboBonus(atk);
+if (def.guard) { const mit=0.55; dmg=Math.max(1, Math.floor(dmg*(1-mit))); def.stamina=Math.max(0, def.stamina - (3 + spec.guardBreak*0.3)); }
+if (Math.random() < spec.critChance) dmg = Math.floor(dmg * 1.5);
+
+def.health = Math.max(0, def.health - dmg);
+def.stunMs = Math.max(def.stunMs, 120 + spec.pushback*4);
+def.x += (atk.facing) * spec.pushback;
+onHit(atk, def, m, dmg);
+if (def.health <= 0) def.alive = false;
+
+} }
+
+---src/marketAdapter.ts--- import { Intent, MarketTick, Move } from "./types"; export function marketToIntent(t: MarketTick): Intent { if (t.volPct > 5 && t.skew > 0.3)  return { walk: 1,  action: { move: 'uppercut' } }; if (t.volPct > 4 && t.skew < -0.2) return { walk: -1, action: { move: 'hook' } }; if (t.volPct > 2)                  return { walk: 0,  action: { move: (t.skew>=0?'cross':'jab') as Move } }; if (t.speed > 0.6)                 return { walk: (t.skew>=0?1:-1), action: { move: 'jab' } }; return { walk: 0 }; } export const DemoTicks: MarketTick[] = [ { volPct: 1.2, skew:  0.1, speed: 0.3 }, { volPct: 2.5, skew: -0.4, speed: 0.5 }, { volPct: 5.6, skew:  0.6, speed: 0.7 }, { volPct: 3.1, skew: -0.6, speed: 0.4 }, { volPct: 6.2, skew:  0.8, speed: 0.9 }, ];
+
+---src/ai.ts--- import { Intent } from './types'; import { marketToIntent, DemoTicks } from './marketAdapter';
+
+export class SimpleAI { private idx = 0; private cooldown = 0; constructor(private side: 'bull'|'bear') {} next(dt: number): Intent { this.cooldown = Math.max(0, this.cooldown - dt); let intent: Intent = { walk: 0 }; if (this.cooldown <= 0) { const tick = DemoTicks[this.idx % DemoTicks.length]; intent = marketToIntent(tick); this.idx++; this.cooldown = 200; } return intent; } } export class AggressiveAI extends SimpleAI { next(dt: number): Intent { const i = super.next(dt); if (i.walk === 0) i.walk = 1; return i; } }
+
+---src/controls.ts--- import { Intent } from './types'; export class Controls { private keys = new Set<string>(); constructor() { window.addEventListener('keydown', e=>{ this.keys.add(e.key.toLowerCase()); }); window.addEventListener('keyup',   e=>{ this.keys.delete(e.key.toLowerCase()); }); } read(): Intent { let walk: -1|0|1 = 0; if (this.keys.has('a')) walk=-1; else if (this.keys.has('d')) walk=1; let action: any = undefined; if (this.keys.has('i')) action = { move:'block' }; else if (this.keys.has('u')) action = { move:'parry' }; else if (this.keys.has('shift')) action = { move:'dodge' }; else if (this.keys.has('j')) action = { move:'jab' }; else if (this.keys.has('k')) action = { move:'cross' }; else if (this.keys.has('l')) action = { move:'hook' }; return { walk, action }; } }
+
+---src/renderer.ts--- import { BoxerState, Move } from "./types"; import { torsoBox, fistPos } from "./combat";
+
+interface Spark { x:number;y:number;vx:number;vy:number;life:number; } export class Renderer { private shake = 0; private sparks: Spark[] = []; private tempo=1.0; constructor(private ctx: CanvasRenderingContext2D) {} setTempoFrom432Hz(mult:number){ this.tempo = Math.max(0.5, Math.min(1.5, mult)); } kickShake(amount:number){ this.shake = Math.min(16, this.shake + amount); } addHitSparks(x:number,y:number,n=8){ for(let i=0;i<n;i++){ this.sparks.push({x,y,vx:(Math.random()-0.5)*2,vy:-Math.random()2,life:400}); } } drawRing() { const { ctx } = this; ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height); const ox = (Math.random()-0.5)this.shake; const oy=(Math.random()-0.5)this.shake; ctx.save(); ctx.translate(ox,oy); ctx.fillStyle = '#0f1318'; ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height); ctx.strokeStyle = '#263041'; ctx.lineWidth = 4; for (let y of [360, 390, 420]) { ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(900, y); ctx.stroke(); } // sparks const nowSparks: Spark[] = []; this.sparks.forEach(s=>{ s.life-=16; s.x+=s.vx; s.y+=s.vy; s.vx=0.96; s.vy+=0.05; if (s.life>0) nowSparks.push(s); }); this.sparks = nowSparks; ctx.fillStyle = '#ffd166'; this.sparks.forEach(s=>{ ctx.fillRect(s.x, s.y, 2,2); }); ctx.restore(); this.shake = 0.9; } drawBoxer(b: BoxerState, hue: number) { const { ctx } = this; // Body ctx.fillStyle = hsl(${hue},60%,55%); const torso = torsoBox(b); ctx.fillRect(torso.x, torso.y, torso.w, torso.h); // Head ctx.beginPath(); ctx.arc(b.x, b.y - 110, 18, 0, Math.PI2); ctx.fill(); // Arms const Ls = { x: b.x - 18, y: b.y - 70 }; const Rs = { x: b.x + 18, y: b.y - 70 }; const Lf = fistPos(b, 'left'); const Rf = fistPos(b, 'right'); ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(Ls.x, Ls.y); ctx.lineTo(Lf.x, Lf.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(Rs.x, Rs.y); ctx.lineTo(Rf.x, Rf.y); ctx.stroke(); // Health/Stamina const barX = b.x - 40, barY = b.y - 140; ctx.fillStyle = '#2a3344'; ctx.fillRect(barX, barY, 80, 6); ctx.fillStyle = '#2ecc71'; ctx.fillRect(barX, barY, 0.8b.health, 6); ctx.fillStyle = '#2a3344'; ctx.fillRect(barX, barY+8, 80, 4); ctx.fillStyle = '#5dade2'; ctx.fillRect(barX, barY+8, 0.8b.stamina, 4); // Combo badge if (b.combo.activeName){ ctx.fillStyle='#ffd166'; ctx.font='10px system-ui'; ctx.fillText(b.combo.activeName, b.x-40, b.y-152); } } drawKO(winner: string) { const { ctx } = this; ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0,0,ctx.canvas.width, ctx.canvas.height); ctx.fillStyle = '#fef08a'; ctx.font = 'bold 56px system-ui'; const msg = ${winner} WINS – KO!; const w = ctx.measureText(msg).width; ctx.fillText(msg, (ctx.canvas.width-w)/2, 280); } }
+
+---src/sfx.ts--- export class SFX { jab = document.getElementById('sfx-jab') as HTMLAudioElement; hit = document.getElementById('sfx-hit') as HTMLAudioElement; ko  = document.getElementById('sfx-ko')  as HTMLAudioElement; play(a: HTMLAudioElement){ if(!a) return; try{ a.currentTime=0; a.play(); }catch{} } }
+
+---src/replay.ts--- import { HitEvent, KOEvent } from './types'; export class ReplayRecorder { hits: HitEvent[] = []; ko?: KOEvent; startT=0; start(t:number){ this.startT=t; this.hits.length=0; this.ko=undefined; } onHit(e: HitEvent){ this.hits.push(e); } onKO(e: KOEvent){ this.ko = e; } toJSON(){ return JSON.stringify({ start:this.startT, hits:this.hits, ko:this.ko }, null, 2); } }
+
+---src/rewards.ts--- // Client-side KO hook → enqueue to your API (server validates + writes Merkle leaf) export async function submitKO(winner: string, loser: string){ try{ await fetch('/api/ko', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ winner, loser, ts: Date.now() }) }); }catch(e){ console.warn('KO submit failed', e); } }
+
+---src/main.ts--- import { Engine } from './engine'; import { createBoxer, applyIntent, updateBoxer } from './boxer'; import { resolveRound } from './combat'; import { Renderer } from './renderer'; import { AggressiveAI, SimpleAI } from './ai'; import { Intent } from './types'; import { Controls } from './controls'; import { ReplayRecorder } from './replay'; import { SFX } from './sfx'; import { submitKO } from './rewards';
+
+const canvas = document.getElementById('arena') as HTMLCanvasElement; const ctx = canvas.getContext('2d')!; const r = new Renderer(ctx); const sfx = new SFX(); const A = createBoxer('AVAX Bull', 280, 1); const B = createBoxer('SOL Bear', 680, -1); const aiB = new SimpleAI('bear'); const controls = new Controls(); let roundMs = 99_000; const timerEl = document.getElementById('timer')!; const replay = new ReplayRecorder(); replay.start(0);
+
+const onHit = (atk: any, def: any, move: any, dmg: number) => { r.kickShake(6 + Math.min(12, dmg)); r.addHitSparks(def.x, def.y-80, Math.min(12, 4+Math.floor(dmg/2))); sfx.play(sfx.hit); replay.onHit({ atk:atk.name, def:def.name, move, dmg, t:performance.now() }); };
+
+const engine = new Engine(16.6667, (dt, t) => { roundMs = Math.max(0, roundMs - dt); timerEl.textContent = String(Math.ceil(roundMs/1000)); // 432Hz tempo hook (optional): slow-mo on low tempo, speed on high r.setTempoFrom432Hz(1.0); // replace with live metric multiplier later
+
+// P1 human, P2 AI const intentA: Intent = controls.read(); const intentB: Intent = aiB.next(dt); applyIntent(A, intentA); applyIntent(B, intentB);
+
+updateBoxer(A, dt); updateBoxer(B, dt); resolveRound(dt, A, B, onHit);
+
+}, () => { r.drawRing(); r.drawBoxer(A, 10); r.drawBoxer(B, 210); if (!A.alive || !B.alive || roundMs <= 0) { const winner = !A.alive ? B.name : !B.alive ? A.name : (A.health === B.health ? 'DRAW' : (A.health>B.health ? A.name : B.name)); if (winner !== 'DRAW') { r.drawKO(winner); sfx.play(sfx.ko); replay.onKO({ winner, loser: winner===A.name?B.name:A.name, t: performance.now() }); saveReplay(replay); submitKO(winner, winner===A.name?B.name:A.name); } } }); engine.start();
+
+function saveReplay(rp: ReplayRecorder){ try{ const blob = new Blob([rp.toJSON()], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'replay.json'; a.click(); } catch{} }
+
+---server/api/ko.ts--- // Minimal Vercel/Next API route (Edge disabled for simplicity) import type { VercelRequest, VercelResponse } from 'vercel'; export default async function handler(req: VercelRequest, res: VercelResponse) { if (req.method !== 'POST') return res.status(405).end(); const { winner, loser, ts } = req.body || {}; if (!winner || !loser) return res.status(400).json({ ok:false }); // TODO: authenticate (HMAC header), store to Supabase, enqueue Merkle leaf build console.log('[KO]', { winner, loser, ts }); res.json({ ok:true }); }
+
+---scripts/replay.js--- // Node script to pretty-print a replay import fs from 'fs'; const file = process.argv[2]; const data = JSON.parse(fs.readFileSync(file,'utf8')); console.log('Replay start:', new Date(data.start).toISOString()); console.log('Hits:', data.hits.length); const dmgByAtk = {}; for(const h of data.hits){ dmgByAtk[h.atk]=(dmgByAtk[h.atk]||0)+h.dmg; } console.table(dmgByAtk); if(data.ko) console.log('KO:', data.ko.winner, 'over', data.ko.loser);
+
+
+---
+
+🔥 Integrations Pack — Crypto Clashers Boxing (Real‑Time, 432 Hz)
+
+This pack wires the fight loop to live market sentiment (Fear & Greed) → 432 Hz tone modulation → move selector, and ships wallet/payments/storage adapters you can toggle on per env.
+
+> Baseline mapping (simple & musical): Fear&Greed 50 = 432 Hz. For every ±1 point from 50, tone shifts ±1 Hz. (So 0 → 382 Hz, 100 → 482 Hz.) You can switch to cents/ET semitone mapping later.
+
+
+
+📦 New Files
+
+package.json (deps & scripts)
+
+{
+  "name": "crypto-clashers-boxing",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "replay": "tsx tools/replay.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ethers": "^6.13.2",
+    "@solana/web3.js": "^1.95.1",
+    "@supabase/supabase-js": "^2.48.1",
+    "tslib": "^2.6.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "vite": "^5.4.1",
+    "tsx": "^4.19.2",
+    "eslint": "^9.10.0",
+    "@types/node": "^22.5.0"
+  }
+}
+
+.env.sample
+
+# ===== Frontend =====
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+
+# Fear & Greed public API (or your proxy). Leave empty to use built-in fallback.
+VITE_FG_API=https://api.alternative.me/fng/?limit=1&format=json
+
+# Optional EVM RPC (speed):
+VITE_EVM_RPC=https://mainnet.infura.io/v3/YOUR_KEY
+
+# Optional Solana RPC (speed):
+VITE_SOL_RPC=https://api.mainnet-beta.solana.com
+
+🎛️ Market → 432 Hz → Fight
+
+src/market/feargreed.ts
+
+export type FearGreed = { value: number; classification: string; ts: number };
+
+const FALLBACK: FearGreed = { value: 50, classification: "Neutral", ts: Date.now() };
+
+export async function fetchFearGreed(api = import.meta.env.VITE_FG_API as string | undefined): Promise<FearGreed> {
+  try {
+    if (!api) return FALLBACK;
+    const res = await fetch(api, { cache: "no-store" });
+    const data = await res.json();
+    /* expected: { data: [{ value: "74", value_classification: "Greed", timestamp: "..."}], ... } */
+    const d = data?.data?.[0];
+    const value = Number(d?.value ?? 50);
+    return { value, classification: d?.value_classification ?? "Neutral", ts: Date.now() };
+  } catch {
+    return FALLBACK;
+  }
+}
+
+export function fgToHz(fg: number): number {
+  // 50 -> 432Hz baseline, ±1 point -> ±1 Hz
+  const delta = fg - 50;
+  return 432 + delta;
+}
+
+src/audio/fgTone.ts
+
+export class FGTone {
+  private ctx: AudioContext | null = null;
+  private osc?: OscillatorNode;
+  private gain?: GainNode;
+
+  start() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    if (this.osc) return;
+    const ctx = this.ctx!;
+    this.osc = ctx.createOscillator();
+    this.gain = ctx.createGain();
+    this.osc.type = "sine";
+    this.osc.frequency.value = 432;
+    this.gain.gain.value = 0.05; // subtle bed
+    this.osc.connect(this.gain).connect(ctx.destination);
+    this.osc.start();
+  }
+
+  setFrequency(hz: number) {
+    if (!this.osc) return;
+    const now = this.ctx!.currentTime;
+    this.osc.frequency.exponentialRampToValueAtTime(Math.max(20, hz), now + 0.1);
+  }
+
+  stop() {
+    if (this.osc) {
+      this.osc.stop();
+      this.osc.disconnect();
+      this.osc = undefined;
+    }
+    this.gain?.disconnect();
+  }
+}
+
+src/game/marketDrive.ts
+
+import { fetchFearGreed, fgToHz } from "../market/feargreed";
+import { FGTone } from "../audio/fgTone";
+import { decideMoveFromFG } from "./moveAI";
+
+export class MarketDriver {
+  private tone = new FGTone();
+  private lastFG = 50;
+
+  async start(loopCb: (fg: number) => void) {
+    this.tone.start();
+    // poll every 10s (keep lightweight for credits). You can switch to websockets / cached proxy.
+    const tick = async () => {
+      const fg = await fetchFearGreed();
+      this.lastFG = fg.value;
+      this.tone.setFrequency(fgToHz(fg.value));
+      loopCb(fg.value);
+    };
+    await tick();
+    setInterval(tick, 10_000);
+  }
+
+  pickMove() {
+    return decideMoveFromFG(this.lastFG);
+  }
+}
+
+src/game/moveAI.ts
+
+export type Arm = "left" | "right";
+export type Move = "guard" | "jab" | "cross" | "hook" | "uppercut" | "dodge";
+
+// Simple mapping: fear -> defensive, greed -> aggressive
+export function decideMoveFromFG(fg: number): { arm: Arm; move: Move } {
+  const g = fg - 50; // -50..+50
+  if (g > 20) return { arm: "right", move: "uppercut" };
+  if (g > 10) return { arm: "right", move: "hook" };
+  if (g > 0)  return { arm: "right", move: "cross" };
+  if (g < -20) return { arm: "left", move: "dodge" };
+  if (g < -10) return { arm: "left", move: "guard" };
+  if (g < 0)   return { arm: "left", move: "jab" };
+  return { arm: Math.random() > 0.5 ? "left" : "right", move: "jab" };
+}
+
+> Hook this into the existing GameLoop: call marketDriver.start(fg => engine.setTempo(0.9 + (fg-50)/200)) and on each AI decision step engine.enqueue(marketDriver.pickMove()).
+
+
+
+👛 Wallets & Chains (toggleable adapters)
+
+Lightweight, credit‑friendly: no SDK bloat; we expose clean bridges you can turn on per build.
+
+src/integrations/evm.ts (MetaMask, Coinbase Wallet via EIP‑1193)
+
+import { BrowserProvider, JsonRpcProvider } from "ethers";
+
+type EIP1193 = { request: (args: { method: string; params?: any[] }) => Promise<any> };
+
+export async function getEvmProvider(): Promise<BrowserProvider | JsonRpcProvider> {
+  const anyWin = window as any;
+  if (anyWin.ethereum) return new BrowserProvider(anyWin.ethereum as EIP1193);
+  // Fallback RPC (read only)
+  const url = import.meta.env.VITE_EVM_RPC;
+  return new JsonRpcProvider(url);
+}
+
+export async function connectEvmWallet() {
+  const anyWin = window as any;
+  if (!anyWin.ethereum) throw new Error("No EVM wallet. Install MetaMask or Coinbase Wallet");
+  const accounts = await anyWin.ethereum.request({ method: "eth_requestAccounts" });
+  return accounts[0] as string;
+}
+
+src/integrations/solana.ts (Phantom)
+
+import { Connection, PublicKey } from "@solana/web3.js";
+
+export function getSolConnection() {
+  const url = import.meta.env.VITE_SOL_RPC || "https://api.mainnet-beta.solana.com";
+  return new Connection(url, "confirmed");
+}
+
+export async function connectPhantom(): Promise<string> {
+  const anyWin = window as any;
+  const provider = anyWin.solana;
+  if (!provider || !provider.isPhantom) throw new Error("Phantom not found");
+  const resp = await provider.connect();
+  return resp.publicKey.toString();
+}
+
+src/integrations/supabase.ts (memory, replays, KO logs)
+
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
+
+export async function logKO(payload: any) {
+  try { await supabase.from("ko_events").insert({ payload, at: new Date().toISOString() }); } catch {}
+}
+
+export async function saveReplay(userId: string, data: object) {
+  try { await supabase.from("replays").insert({ user_id: userId, data, at: new Date().toISOString() }); } catch {}
+}
+
+💳 Payments (Stripe stub — client callout, server to add later)
+
+src/integrations/payments.ts
+
+export async function createCheckout(amountUsd: number) {
+  const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amountUsd }) });
+  if (!res.ok) throw new Error("checkout failed");
+  const { url } = await res.json();
+  location.href = url;
+}
+
+> Server/API routes can be added in your Next/Vercel project (reuse your existing Stripe keys). This repo stays front‑end only to save credits.
+
+
+
+🧠 AI (local policy bot – zero credits)
+
+src/ai/hypeCaster.ts
+
+export function hypeLine(fg: number): string {
+  if (fg > 80) return "The bulls are stampeding! Uppercuts rain down like green candles!";
+  if (fg > 60) return "Greed surging – combos connecting with authority.";
+  if (fg < 20) return "Max fear – tight guard, counterpunching from the ropes.";
+  if (fg < 40) return "Cautious footwork, probing jabs in a jittery market.";
+  return "Balanced flow – classic 1–2s defining the tempo.";
+}
+
+🧩 UI Wiring (one place)
+
+src/integrations/index.ts
+
+import { connectEvmWallet, getEvmProvider } from "./evm";
+import { connectPhantom } from "./solana";
+import { MarketDriver } from "../game/marketDrive";
+import { hypeLine } from "../ai/hypeCaster";
+import { logKO } from "./supabase";
+
+export async function initIntegrations(ui: {
+  onFG: (fg: number, line: string) => void;
+  onWallet: (addr: string) => void;
+  onKO: (payload: any) => void;
+}) {
+  // Start market loop
+  const driver = new MarketDriver();
+  await driver.start((fg) => ui.onFG(fg, hypeLine(fg)));
+
+  // Wallet buttons
+  (document.getElementById("btn-evm")!).addEventListener("click", async () => {
+    const addr = await connectEvmWallet();
+    ui.onWallet(addr);
+  });
+  (document.getElementById("btn-phantom")!).addEventListener("click", async () => {
+    const addr = await connectPhantom();
+    ui.onWallet(addr);
+  });
+
+  // KO hook → Supabase
+  ui.onKO = async (payload) => { await logKO(payload); };
+
+  return driver; // so game loop can query driver.pickMove()
+}
+
+🕹️ Hook into the Game
+
+In your existing src/main.ts (or src/game/engine.ts), wire these:
+
+import { initIntegrations } from "./integrations";
+import { GameEngine } from "./engine"; // existing
+
+const fgEl = document.getElementById("fg")!;
+const walletEl = document.getElementById("wallet")!;
+
+const engine = new GameEngine();
+const driver = await initIntegrations({
+  onFG: (fg, line) => { fgEl.textContent = `FG ${fg} | ${line}`; engine.setTempo(0.9 + (fg-50)/200); },
+  onWallet: (addr) => walletEl.textContent = addr,
+  onKO: (payload) => console.log("KO payload stored", payload)
+});
+
+// Use driver-driven AI decisions every N frames
+engine.onAIDecision(() => {
+  const { arm, move } = driver.pickMove();
+  engine.enqueueAI(arm, move);
+});
+
+🧱 Optional Bridges & Oracles (stubs you can fill)
+
+Chainlink (EVM): use your node/price feeds to replace FG driver or to guard payouts.
+
+Pyth (Solana): fetch volatility, map to combo windows.
+
+Aleo/ZK: verify fair‑play replays → mint badge (server side).
+
+Uniswap/Jupiter: route buyback/burn on KO (server).
+
+
+We leave those server flows stubbed to avoid paid API/compute right now.
+
+🗄️ Supabase SQL (paste once)
+
+create table if not exists ko_events (
+  id uuid primary key default gen_random_uuid(),
+  at timestamptz not null,
+  payload jsonb not null
+);
+
+create table if not exists replays (
+  id uuid primary key default gen_random_uuid(),
+  user_id text,
+  at timestamptz not null,
+  data jsonb not null
+);
+
+🧪 Quick Test Plan
+
+1. cp .env.sample .env && npm i && npm run dev
+
+
+2. Click Connect EVM or Connect Phantom (read‑only OK without wallets).
+
+
+3. Watch HUD: FG, tone gliss from ~382–482 Hz when FG swings.
+
+
+4. Spawn AI: moves follow FG (fear → guard/dodge, greed → hooks/uppercuts).
+
+
+5. Land a KO → check Supabase tables for ko_events.
+
+
+
+🚀 Roadmap Switches (when you’re ready)
+
+Replace FG API with your server proxy (cache 30s, CORS OK).
+
+Add RSI/MAs/MACD module feeding the same MarketDriver (multi‑feature policy).
+
+Wire Stripe/Coinbase Commerce on the server; on success → mint badge + route revenue.
+
+Swap 1 Hz mapping for 12‑TET cents: freq = 432 * 2**((fg-50)/1200 * centsPerPt).
+
+
+
+---
+
+You’re battle‑ready. This ships real‑time market‑driven fighting with 432 Hz audio bed, wallets, memory, KO logging, and clean hooks for every chain/payment you listed — without burning credits. Add servers when you want the full treasury + settlement flows back in.
+
