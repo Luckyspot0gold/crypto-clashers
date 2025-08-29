@@ -1,0 +1,11 @@
+// Teaching moments through audio
+function playEducationalCue(concept) {
+    const educationalTones = {
+        'support_level': generateTone(432, 'steady'), // Stable tone
+        'resistance_level': generateTone(432 * 1.25, 'tension'), // Tense harmony
+        'breakout': generateTone(432 * 1.5, 'ascending'), // Rising sequence
+        'volume_spike': generateTone(432, 'crescendo') // Building intensity
+    };
+    
+    return educationalTones[concept];
+}
