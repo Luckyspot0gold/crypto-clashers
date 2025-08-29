@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Clashers - Boxing Mechanics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ffd700, #ff6b35, #f7931e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #cccccc;
+            font-size: 1.2rem;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ring-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .boxing-ring {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #8B4513;
+            overflow: hidden;
+        }
+        
+        .ring-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .boxer {
+            position: absolute;
+            transition: transform 0.1s;
+        }
+        
+        .boxer-player {
+            left: 25%;
+            bottom: 100px;
+            width: 120px;
+            height: 200px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 10px;
+            z-index: 10;
+        }
+        
+        .boxer-opponent {
+            right: 25%;
+            bottom: 100px;
+            width: 120px;
+            height: 200px;
+            background: linear-gradient(45deg, #1e90ff, #4169e1);
+            border-radius: 10px;
+            z-index: 10;
+        }
+        
+        .health-bar {
+            position: absolute;
+            top: 20px;
+            width: 80%;
+            left: 10%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 100;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #00ff88);
+            width: 100%;
+            transition: width 0.3s;
+        }
+        
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ff6b35);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        .punch-btn {
+            background: linear-gradient(45deg, #ff4444, #ff6b35);
+        }
+        
+        .block-btn {
+            background: linear-gradient(45deg, #1e90ff, #4169e1);
+        }
+        
+        .special-btn {
+            background: linear-gradient(45deg, #9b30ff, #ff00ff);
+        }
+        
+        .market-data {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .market-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .market-card h4 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .market-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        
+        .combo-meter {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .combo-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #9b30ff, #ff00ff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .punch-animation {
+            animation: punch 0.2s forwards;
+        }
+        
+        .hit-animation {
+            animation: hit 0.3s forwards;
+        }
+        
+        .block-animation {
+            animation: block 0.2s forwards;
+        }
+        
+        .dodge-animation {
+            animation: dodge 0.4s forwards;
+        }
+        
+        @keyframes punch {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(30px) translateY(-10px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+        
+        @keyframes hit {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(20px); }
+            50% { transform: translateX(-20px); }
+            75% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+        
+        @keyframes block {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes dodge {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-40px); }
+            100% { transform: translateX(0); }
+        }
+        
+        .fight-log {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #ffd700;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .damage-log {
+            color: #ff4444;
+        }
+        
+        .block-log {
+            color: #1e90ff;
+        }
+        
+        .combo-log {
+            color: #ff00ff;
+        }
+        
+        .special-log {
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CRYPTO CLASHERS - BOXING MECHANICS</h1>
+            <p class="subtitle">Market-Powered Boxing Game with Real Combat Mechanics</p>
+        </header>
+        
+        <div class="game-container">
+            <div class="ring-container">
+                <div class="boxing-ring">
+                    <div class="health-bar">
+                        <div class="health-fill" id="playerHealth"></div>
+                    </div>
+                    
+                    <div class="boxer boxer-player" id="playerBoxer">
+                        <div class="boxer-name">BTC Boxer</div>
+                    </div>
+                    
+                    <div class="boxer boxer-opponent" id="opponentBoxer">
+                        <div class="boxer-name">ETH Fighter</div>
+                    </div>
+                    
+                    <canvas class="ring-canvas" id="ringCanvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>ATTACKS</h3>
+                    <button class="btn punch-btn" id="jabBtn">JAB (Q)</button>
+                    <button class="btn punch-btn" id="crossBtn">CROSS (W)</button>
+                    <button class="btn punch-btn" id="hookBtn">HOOK (E)</button>
+                    <button class="btn punch-btn" id="uppercutBtn">UPPERCUT (R)</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>DEFENSE</h3>
+                    <button class="btn block-btn" id="blockBtn">BLOCK (A)</button>
+                    <button class="btn block-btn" id="dodgeBtn">DODGE (S)</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>SPECIAL MOVES</h3>
+                    <button class="btn special-btn" id="bullRunBtn">BULL RUN (D)</button>
+                    <button class="btn special-btn" id="marketCrashBtn">MARKET CRASH (F)</button>
+                    
+                    <div class="combo-meter">
+                        <div class="combo-fill" id="comboMeter"></div>
+                    </div>
+                    <div>Combo Meter</div>
+                </div>
+                
+                <div class="market-data">
+                    <div class="market-card">
+                        <h4>BTC Price</h4>
+                        <div class="market-value" id="btcPrice">$45,234.56</div>
+                        <div class="market-change positive" id="btcChange">+2.34%</div>
+                    </div>
+                    <div class="market-card">
+                        <h4>ETH Price</h4>
+                        <div class="market-value" id="ethPrice">$2,845.67</div>
+                        <div class="market-change positive" id="ethChange">+1.89%</div>
+                    </div>
+                </div>
+                
+                <div class="fight-log" id="fightLog">
+                    <div class="log-entry">Fight begins! Market data influencing fight mechanics...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            playerHealth: 100,
+            opponentHealth: 100,
+            playerBlocking: false,
+            opponentBlocking: false,
+            comboMeter: 0,
+            marketData: {
+                btc: { price: 45234.56, change: 2.34 },
+                eth: { price: 2845.67, change: 1.89 }
+            },
+            fightLog: []
+        };
+
+        // DOM Elements
+        const playerHealthEl = document.getElementById('playerHealth');
+        const opponentHealthEl = document.getElementById('opponentHealth');
+        const playerBoxerEl = document.getElementById('playerBoxer');
+        const opponentBoxerEl = document.getElementById('opponentBoxer');
+        const comboMeterEl = document.getElementById('comboMeter');
+        const fightLogEl = document.getElementById('fightLog');
+        
+        // Market elements
+        const btcPriceEl = document.getElementById('btcPrice');
+        const btcChangeEl = document.getElementById('btcChange');
+        const ethPriceEl = document.getElementById('ethPrice');
+        const ethChangeEl = document.getElementById('ethChange');
+
+        // Initialize the game
+        function initGame() {
+            updateHealthBars();
+            simulateMarketChanges();
+            setInterval(opponentAI, 2000);
+            setInterval(updateMarketDisplay, 5000);
+            
+            // Add keyboard controls
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // Add button event listeners
+            document.getElementById('jabBtn').addEventListener('click', () => performPunch('jab'));
+            document.getElementById('crossBtn').addEventListener('click', () => performPunch('cross'));
+            document.getElementById('hookBtn').addEventListener('click', () => performPunch('hook'));
+            document.getElementById('uppercutBtn').addEventListener('click', () => performPunch('uppercut'));
+            document.getElementById('blockBtn').addEventListener('click', () => toggleBlock());
+            document.getElementById('dodgeBtn').addEventListener('click', () => performDodge());
+            document.getElementById('bullRunBtn').addEventListener('click', () => performSpecial('bullrun'));
+            document.getElementById('marketCrashBtn').addEventListener('click', () => performSpecial('marketcrash'));
+            
+            logEvent("Game initialized. Market data affecting fight mechanics!");
+        }
+
+        // Update health bars
+        function updateHealthBars() {
+            playerHealthEl.style.width = `${gameState.playerHealth}%`;
+            // For opponent health, we'd have a separate element if displayed
+        }
+
+        // Handle keyboard controls
+        function handleKeyPress(e) {
+            switch(e.key.toLowerCase()) {
+                case 'q': performPunch('jab'); break;
+                case 'w': performPunch('cross'); break;
+                case 'e': performPunch('hook'); break;
+                case 'r': performPunch('uppercut'); break;
+                case 'a': toggleBlock(); break;
+                case 's': performDodge(); break;
+                case 'd': performSpecial('bullrun'); break;
+                case 'f': performSpecial('marketcrash'); break;
+            }
+        }
+
+        // Perform a punch
+        function performPunch(type) {
+            if (gameState.playerBlocking) return;
+            
+            // Add animation
+            playerBoxerEl.classList.add('punch-animation');
+            setTimeout(() => {
+                playerBoxerEl.classList.remove('punch-animation');
+            }, 200);
+            
+            // Calculate damage based on punch type and market conditions
+            const baseDamage = {
+                jab: 5,
+                cross: 8,
+                hook: 10,
+                uppercut: 12
+            }[type];
+            
+            // Market influence - BTC performance increases damage
+            const marketMultiplier = 1 + (gameState.marketData.btc.change / 100);
+            const damage = Math.floor(baseDamage * marketMultiplier);
+            
+            // Apply damage if not blocked
+            if (!gameState.opponentBlocking) {
+                gameState.opponentHealth = Math.max(0, gameState.opponentHealth - damage);
+                opponentBoxerEl.classList.add('hit-animation');
+                setTimeout(() => {
+                    opponentBoxerEl.classList.remove('hit-animation');
+                }, 300);
+                
+                // Increase combo meter
+                gameState.comboMeter = Math.min(100, gameState.comboMeter + 10);
+                comboMeterEl.style.width = `${gameState.comboMeter}%`;
+                
+                logEvent(`<span class="damage-log">BTC Boxer hits with ${type.toUpperCase()} for ${damage} damage!</span>`);
+                
+                // Check for knockout
+                if (gameState.opponentHealth <= 0) {
+                    logEvent("<span class='special-log'>KNOCKOUT! You win!</span>");
+                }
+            } else {
+                logEvent(`<span class="block-log">ETH Fighter blocked your ${type}!</span>`);
+            }
+            
+            updateHealthBars();
+        }
+
+        // Toggle block
+        function toggleBlock() {
+            gameState.playerBlocking = !gameState.playerBlocking;
+            
+            if (gameState.playerBlocking) {
+                playerBoxerEl.classList.add('block-animation');
+                logEvent("<span class='block-log'>Blocking enabled</span>");
+            } else {
+                playerBoxerEl.classList.remove('block-animation');
+                logEvent("Blocking disabled");
+            }
+        }
+
+        // Perform dodge
+        function performDodge() {
+            playerBoxerEl.classList.add('dodge-animation');
+            setTimeout(() => {
+                playerBoxerEl.classList.remove('dodge-animation');
+            }, 400);
+            
+            logEvent("Dodged opponent's attack!");
+        }
+
+        // Perform special move
+        function performSpecial(move) {
+            if (gameState.comboMeter < 50) {
+                logEvent("Not enough combo energy!");
+                return;
+            }
+            
+            if (move === 'bullrun') {
+                // Bull Run: Significant damage based on positive market movement
+                const marketStrength = Math.max(0, gameState.marketData.btc.change);
+                const damage = 20 + Math.floor(marketStrength * 2);
+                
+                gameState.opponentHealth = Math.max(0, gameState.opponentHealth - damage);
+                logEvent(`<span class="special-log">BULL RUN! Deals ${damage} damage based on market performance!</span>`);
+                
+            } else if (move === 'marketcrash') {
+                // Market Crash: Stuns opponent based on negative market movement
+                const stunDuration = 3; // rounds
+                logEvent(`<span class="special-log">MARKET CRASH! Opponent stunned for ${stunDuration} rounds!</span>`);
+            }
+            
+            // Reset combo meter
+            gameState.comboMeter = 0;
+            comboMeterEl.style.width = '0%';
+            
+            updateHealthBars();
+        }
+
+        // Opponent AI
+        function opponentAI() {
+            if (gameState.opponentHealth <= 0) return;
+            
+            // Randomly choose action
+            const actions = ['punch', 'block', 'special'];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            
+            // Market influence - ETH performance affects opponent strength
+            const ethMultiplier = 1 + (gameState.marketData.eth.change / 100);
+            
+            if (action === 'punch' && !gameState.opponentBlocking) {
+                opponentBoxerEl.classList.add('punch-animation');
+                setTimeout(() => {
+                    opponentBoxerEl.classList.remove('punch-animation');
+                }, 200);
+                
+                if (!gameState.playerBlocking) {
+                    const damage = Math.floor(8 * ethMultiplier);
+                    gameState.playerHealth = Math.max(0, gameState.playerHealth - damage);
+                    
+                    playerBoxerEl.classList.add('hit-animation');
+                    setTimeout(() => {
+                        playerBoxerEl.classList.remove('hit-animation');
+                    }, 300);
+                    
+                    logEvent(`<span class="damage-log">ETH Fighter hits you for ${damage} damage!</span>`);
+                    
+                    if (gameState.playerHealth <= 0) {
+                        logEvent("<span class='damage-log'>You've been knocked out!</span>");
+                    }
+                } else {
+                    logEvent("<span class='block-log'>You blocked ETH Fighter's attack!</span>");
+                }
+                
+                updateHealthBars();
+            }
+        }
+
+        // Simulate market changes
+        function simulateMarketChanges() {
+            setInterval(() => {
+                // Simulate market fluctuations
+                gameState.marketData.btc.change += (Math.random() - 0.5) * 2;
+                gameState.marketData.eth.change += (Math.random() - 0.5) * 2;
+                
+                // Update prices based on change percentage
+                gameState.marketData.btc.price *= (1 + gameState.marketData.btc.change / 100);
+                gameState.marketData.eth.price *= (1 + gameState.marketData.eth.change / 100);
+                
+                updateMarketDisplay();
+            }, 10000);
+        }
+
+        // Update market display
+        function updateMarketDisplay() {
+            btcPriceEl.textContent = `$${gameState.marketData.btc.price.toFixed(2)}`;
+            ethPriceEl.textContent = `$${gameState.marketData.eth.price.toFixed(2)}`;
+            
+            btcChangeEl.textContent = `${gameState.marketData.btc.change >= 0 ? '+' : ''}${gameState.marketData.btc.change.toFixed(2)}%`;
+            ethChangeEl.textContent = `${gameState.marketData.eth.change >= 0 ? '+' : ''}${gameState.marketData.eth.change.toFixed(2)}%`;
+            
+            btcChangeEl.className = `market-change ${gameState.marketData.btc.change >= 0 ? 'positive' : 'negative'}`;
+            ethChangeEl.className = `market-change ${gameState.marketData.eth.change >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        // Add event to fight log
+        function logEvent(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = message;
+            
+            fightLogEl.appendChild(logEntry);
+            fightLogEl.scrollTop = fightLogEl.scrollHeight;
+            
+            // Keep only last 10 entries
+            if (fightLogEl.children.length > 10) {
+                fightLogEl.removeChild(fightLogEl.children[0]);
+            }
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
