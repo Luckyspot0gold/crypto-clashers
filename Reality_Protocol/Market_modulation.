@@ -1,0 +1,31 @@
+// Market-driven frequency modulation
+function modulateWithMarketData(baseFreq, marketData) {
+    const btcChange = marketData.btc_24h_change;
+    const volume = marketData.volume_24h;
+    
+    // Pitch modulation (frequency shifts)
+    let frequency = baseFreq; // Always starts at 432Hz
+    
+    if (btcChange > 0) {
+        // Bullish: Increase pitch slightly
+        frequency = 432 + (btcChange * 2); // Max +20Hz for 10% gain
+    } else {
+        // Bearish: Decrease pitch slightly  
+        frequency = 432 + (btcChange * 2); // Max -20Hz for 10% loss
+    }
+    
+    // Harmonic enrichment based on volume
+    const harmonics = [
+        frequency,           // Fundamental (432Hz base)
+        frequency * 2,       // Octave
+        frequency * 3,       // Perfect fifth
+        frequency * 4,       // Second octave
+        frequency * 5        // Major third
+    ];
+    
+    return {
+        fundamental: frequency,
+        harmonics: harmonics,
+        amplitude: Math.min(volume / 1000000, 1.0)
+    };
+}
