@@ -1,0 +1,56 @@
+// Complete 432Hz Audio Engine
+class CryptoClashersAudioEngine {
+    constructor() {
+        this.audioContext = new AudioContext();
+        this.baseFrequency = 432; // Never changes
+        this.currentGain = this.audioContext.createGain();
+        this.harmonicOscillators = [];
+    }
+    
+    // Generate market-responsive audio
+    playMarketEvent(eventType, marketData) {
+        const mapping = audioMappings[eventType];
+        const modulation = this.modulateWithMarketData(
+            this.baseFrequency, 
+            marketData
+        );
+        
+        // Create harmonic series
+        mapping.harmonics.forEach((harmonic, index) => {
+            const oscillator = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+            
+            // Set frequency (pitch changes, not note)
+            oscillator.frequency.setValueAtTime(
+                harmonic * (modulation.fundamental / this.baseFrequency),
+                this.audioContext.currentTime
+            );
+            
+            // Set amplitude based on market volume
+            gain.gain.setValueAtTime(
+                modulation.amplitude / (index + 1), // Harmonics get quieter
+                this.audioContext.currentTime
+            );
+            
+            // Connect audio graph
+            oscillator.connect(gain);
+            gain.connect(this.currentGain);
+            this.currentGain.connect(this.audioContext.destination);
+            
+            // Play for specified duration
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + mapping.duration);
+        });
+    }
+    
+    // Educational mode - explain what's happening
+    explainAudioEvent(eventType, marketData) {
+        const explanation = {
+            'btc_surge': `Bitcoin is surging! The rising pitch represents the price increase. The 432Hz base frequency keeps you calm while processing this exciting news.`,
+            'market_crash': `Market correction detected. The descending harmonics mirror the price drop, while the 432Hz foundation maintains emotional stability.`,
+            'whale_buy': `Whale activity! The rich harmonic content represents the large volume, with 432Hz providing the stable foundation for decision-making.`
+        };
+        
+        return explanation[eventType] || 'Market event detected with harmonic processing.';
+    }
+}
