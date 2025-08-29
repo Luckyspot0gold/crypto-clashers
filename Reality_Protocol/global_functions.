@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite-Based Fighter Prototype</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .prototype-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff88;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #88ffaa;
+        }
+
+        /* Enhanced Arena with Background */
+        .enhanced-arena {
+            width: 100%;
+            height: 500px;
+            background: linear-gradient(to bottom, #2a2a3a, #1a1a2a);
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><rect fill="%23001122" width="800" height="400"/><rect fill="%23002244" x="0" y="300" width="800" height="100"/><circle fill="%23FFD700" cx="100" cy="50" r="30"/><text x="120" y="60" fill="%23FFD700" font-size="20" font-weight="bold">₿</text><circle fill="%23FFD700" cx="700" cy="50" r="30"/><text x="720" y="60" fill="%23FFD700" font-size="20" font-weight="bold">₿</text><rect fill="%2300ff88" x="50" y="80" width="200" height="60" opacity="0.3"/><rect fill="%2300ff88" x="550" y="80" width="200" height="60" opacity="0.3"/></svg>');
+            background-size: cover;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #00ff88;
+        }
+
+        /* Sprite-based Fighter */
+        .sprite-fighter {
+            width: 64px;
+            height: 80px;
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80"><rect fill="%23ff6b35" width="64" height="80" rx="8"/><circle fill="%23ffaa00" cx="32" cy="20" r="12"/><rect fill="%23ffaa00" x="16" y="32" width="32" height="24" rx="4"/><circle fill="%23ffaa00" cx="12" cy="40" r="8"/><circle fill="%23ffaa00" cx="52" cy="40" r="8"/><text x="32" y="45" text-anchor="middle" fill="%23000" font-size="8" font-weight="bold">₿</text><rect fill="%23ffaa00" x="20" y="56" width="24" height="20" rx="2"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: all 0.1s ease;
+            z-index: 10;
+        }
+
+        /* Enhanced Animation States */
+        .sprite-fighter.idle {
+            animation: enhanced-idle 2s ease-in-out infinite;
+        }
+
+        .sprite-fighter.jab {
+            animation: enhanced-jab 0.6s ease-out;
+        }
+
+        .sprite-fighter.cross {
+            animation: enhanced-cross 0.8s ease-out;
+        }
+
+        .sprite-fighter.uppercut {
+            animation: enhanced-uppercut 1.2s ease-out;
+        }
+
+        .sprite-fighter.hook {
+            animation: enhanced-hook 0.9s ease-out;
+        }
+
+        .sprite-fighter.combo {
+            animation: enhanced-combo 2.0s ease-out;
+        }
+
+        .sprite-fighter.victory {
+            animation: enhanced-victory 2.5s ease-out;
+        }
+
+        .sprite-fighter.defensive {
+            animation: enhanced-defensive 1.5s ease-out;
+        }
+
+        .sprite-fighter.special {
+            animation: enhanced-special 3.0s ease-out;
+        }
+
+        /* Enhanced Keyframe Animations */
+        @keyframes enhanced-idle {
+            0%, 100% { 
+                transform: translateX(-50%) scale(1) rotate(0deg); 
+                filter: brightness(1);
+            }
+            25% { 
+                transform: translateX(-50%) scale(1.01) rotate(0.5deg); 
+                filter: brightness(1.05);
+            }
+            75% { 
+                transform: translateX(-50%) scale(1.01) rotate(-0.5deg); 
+                filter: brightness(1.05);
+            }
+        }
+
+        @keyframes enhanced-jab {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            20% { transform: translateX(-50%) translateY(-3px) rotate(1deg) scale(1.02); }
+            40% { transform: translateX(-50%) translateY(-8px) rotate(3deg) scale(1.05); }
+            60% { transform: translateX(-50%) translateY(-5px) rotate(1deg) scale(1.03); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-cross {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            15% { transform: translateX(-50%) translateY(-5px) rotate(-2deg) scale(1.03); }
+            35% { transform: translateX(-50%) translateY(-12px) rotate(5deg) scale(1.08); }
+            55% { transform: translateX(-50%) translateY(-15px) rotate(8deg) scale(1.1); }
+            75% { transform: translateX(-50%) translateY(-8px) rotate(3deg) scale(1.05); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-uppercut {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            15% { transform: translateX(-50%) translateY(8px) rotate(-3deg) scale(0.98); }
+            35% { transform: translateX(-50%) translateY(-25px) rotate(12deg) scale(1.15); }
+            55% { transform: translateX(-50%) translateY(-35px) rotate(18deg) scale(1.2); }
+            75% { transform: translateX(-50%) translateY(-20px) rotate(10deg) scale(1.1); }
+            90% { transform: translateX(-50%) translateY(-5px) rotate(3deg) scale(1.03); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-hook {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            20% { transform: translateX(-50%) translateY(-3px) rotate(-5deg) scale(1.02); }
+            40% { transform: translateX(-50%) translateY(-10px) rotate(15deg) scale(1.08); }
+            60% { transform: translateX(-50%) translateY(-12px) rotate(20deg) scale(1.1); }
+            80% { transform: translateX(-50%) translateY(-6px) rotate(8deg) scale(1.04); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-combo {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            10% { transform: translateX(-50%) translateY(-5px) rotate(2deg) scale(1.03); }
+            20% { transform: translateX(-50%) translateY(-8px) rotate(-3deg) scale(1.05); }
+            30% { transform: translateX(-50%) translateY(-12px) rotate(5deg) scale(1.08); }
+            40% { transform: translateX(-50%) translateY(-18px) rotate(-8deg) scale(1.12); }
+            50% { transform: translateX(-50%) translateY(-25px) rotate(12deg) scale(1.15); }
+            60% { transform: translateX(-50%) translateY(-30px) rotate(15deg) scale(1.18); }
+            70% { transform: translateX(-50%) translateY(-20px) rotate(8deg) scale(1.1); }
+            80% { transform: translateX(-50%) translateY(-10px) rotate(3deg) scale(1.05); }
+            90% { transform: translateX(-50%) translateY(-3px) rotate(1deg) scale(1.02); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-victory {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            20% { transform: translateX(-50%) translateY(-15px) rotate(-10deg) scale(1.1); }
+            40% { transform: translateX(-50%) translateY(-25px) rotate(15deg) scale(1.15); }
+            60% { transform: translateX(-50%) translateY(-30px) rotate(20deg) scale(1.2); }
+            80% { transform: translateX(-50%) translateY(-35px) rotate(25deg) scale(1.25); }
+            100% { transform: translateX(-50%) translateY(-40px) rotate(30deg) scale(1.3); }
+        }
+
+        @keyframes enhanced-defensive {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+            25% { transform: translateX(-50%) translateY(3px) rotate(-2deg) scale(0.95); }
+            50% { transform: translateX(-50%) translateY(5px) rotate(-3deg) scale(0.9); }
+            75% { transform: translateX(-50%) translateY(3px) rotate(-2deg) scale(0.95); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+        }
+
+        @keyframes enhanced-special {
+            0% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); filter: brightness(1) hue-rotate(0deg); }
+            10% { transform: translateX(-50%) translateY(-5px) rotate(5deg) scale(1.05); filter: brightness(1.2) hue-rotate(30deg); }
+            20% { transform: translateX(-50%) translateY(-15px) rotate(-10deg) scale(1.15); filter: brightness(1.5) hue-rotate(60deg); }
+            30% { transform: translateX(-50%) translateY(-25px) rotate(15deg) scale(1.25); filter: brightness(1.8) hue-rotate(90deg); }
+            40% { transform: translateX(-50%) translateY(-35px) rotate(-20deg) scale(1.35); filter: brightness(2) hue-rotate(120deg); }
+            50% { transform: translateX(-50%) translateY(-45px) rotate(25deg) scale(1.5); filter: brightness(2.5) hue-rotate(180deg); }
+            60% { transform: translateX(-50%) translateY(-40px) rotate(-15deg) scale(1.4); filter: brightness(2.2) hue-rotate(240deg); }
+            70% { transform: translateX(-50%) translateY(-30px) rotate(10deg) scale(1.3); filter: brightness(1.8) hue-rotate(300deg); }
+            80% { transform: translateX(-50%) translateY(-20px) rotate(-5deg) scale(1.2); filter: brightness(1.5) hue-rotate(330deg); }
+            90% { transform: translateX(-50%) translateY(-10px) rotate(2deg) scale(1.1); filter: brightness(1.2) hue-rotate(350deg); }
+            100% { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); filter: brightness(1) hue-rotate(360deg); }
+        }
+
+        /* Enhanced Impact Effects */
+        .impact-effect {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .impact-effect.small {
+            background: radial-gradient(circle, #ffff00 0%, #ff8800 50%, transparent 100%);
+            animation: enhanced-small-impact 0.6s ease-out;
+        }
+
+        .impact-effect.medium {
+            background: radial-gradient(circle, #ff8800 0%, #ff4400 30%, #ffff00 60%, transparent 100%);
+            animation: enhanced-medium-impact 0.9s ease-out;
+        }
+
+        .impact-effect.large {
+            background: radial-gradient(circle, #ff0000 0%, #ff8800 20%, #ffff00 40%, #ffffff 70%, transparent 100%);
+            animation: enhanced-large-impact 1.3s ease-out;
+        }
+
+        .impact-effect.special {
+            background: radial-gradient(circle, #ffffff 0%, #ffff00 20%, #ff8800 40%, #ff0000 60%, #8800ff 80%, transparent 100%);
+            animation: enhanced-special-impact 2s ease-out;
+        }
+
+        @keyframes enhanced-small-impact {
+            0% { opacity: 1; transform: scale(0.2) rotate(0deg); }
+            50% { opacity: 0.9; transform: scale(1) rotate(180deg); }
+            100% { opacity: 0; transform: scale(1.8) rotate(360deg); }
+        }
+
+        @keyframes enhanced-medium-impact {
+            0% { opacity: 1; transform: scale(0.3) rotate(0deg); }
+            30% { opacity: 1; transform: scale(1.2) rotate(120deg); }
+            70% { opacity: 0.7; transform: scale(1.8) rotate(240deg); }
+            100% { opacity: 0; transform: scale(2.5) rotate(360deg); }
+        }
+
+        @keyframes enhanced-large-impact {
+            0% { opacity: 1; transform: scale(0.5) rotate(0deg); }
+            20% { opacity: 1; transform: scale(1.5) rotate(72deg); }
+            50% { opacity: 0.9; transform: scale(2.2) rotate(180deg); }
+            80% { opacity: 0.5; transform: scale(3) rotate(288deg); }
+            100% { opacity: 0; transform: scale(4) rotate(360deg); }
+        }
+
+        @keyframes enhanced-special-impact {
+            0% { opacity: 1; transform: scale(0.8) rotate(0deg); filter: hue-rotate(0deg); }
+            25% { opacity: 1; transform: scale(2) rotate(90deg); filter: hue-rotate(90deg); }
+            50% { opacity: 0.9; transform: scale(3.5) rotate(180deg); filter: hue-rotate(180deg); }
+            75% { opacity: 0.6; transform: scale(5) rotate(270deg); filter: hue-rotate(270deg); }
+            100% { opacity: 0; transform: scale(6.5) rotate(360deg); filter: hue-rotate(360deg); }
+        }
+
+        /* Enhanced Particle System */
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ffff00;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        .particle.gold {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            animation: particle-gold 2.5s linear forwards;
+        }
+
+        .particle.orange {
+            background: linear-gradient(45deg, #FF8C00, #FF4500);
+            animation: particle-orange 2s linear forwards;
+        }
+
+        .particle.red {
+            background: linear-gradient(45deg, #FF4500, #DC143C);
+            animation: particle-red 1.8s linear forwards;
+        }
+
+        .particle.special {
+            background: linear-gradient(45deg, #FF00FF, #00FFFF);
+            animation: particle-special 3s linear forwards;
+        }
+
+        @keyframes particle-gold {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-120px) scale(0.2) rotate(720deg); }
+        }
+
+        @keyframes particle-orange {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-100px) scale(0.3) rotate(540deg); }
+        }
+
+        @keyframes particle-red {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.4) rotate(360deg); }
+        }
+
+        @keyframes particle-special {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); filter: hue-rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-150px) scale(0.1) rotate(1080deg); filter: hue-rotate(720deg); }
+        }
+
+        /* Enhanced Controls */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .control-group h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #00ff88, #88ffaa);
+            color: #000;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 0.8rem;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .control-btn.special {
+            background: linear-gradient(45deg, #ff6b35, #ff8855);
+            color: white;
+        }
+
+        .control-btn.market {
+            background: linear-gradient(45deg, #8800ff, #aa44ff);
+            color: white;
+        }
+
+        /* Enhanced Stats Display */
+        .enhanced-stats {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #88ffaa;
+            margin-top: 5px;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #88ffaa);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Animation Queue Display */
+        .animation-queue {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .queue-item {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #88ffaa;
+        }
+
+        .queue-item.active {
+            background: rgba(0, 255, 136, 0.3);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="prototype-container">
+        <h1 class="title">Sprite-Based Fighter Prototype</h1>
+        <p class="subtitle">Enhanced Bitcoin Boxer with Market-Driven Animations</p>
+        
+        <div class="enhanced-arena">
+            <div class="sprite-fighter idle" id="spriteFighter"></div>
+            <div class="impact-effect" id="impactEffect"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>Basic Attacks</h3>
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="triggerAnimation('jab')">👊 Jab</button>
+                    <button class="control-btn" onclick="triggerAnimation('cross')">🥊 Cross</button>
+                    <button class="control-btn" onclick="triggerAnimation('hook')">🪝 Hook</button>
+                    <button class="control-btn" onclick="triggerAnimation('uppercut')">⬆️ Uppercut</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Advanced Moves</h3>
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="triggerAnimation('combo')">🔥 Combo</button>
+                    <button class="control-btn" onclick="triggerAnimation('defensive')">🛡️ Defense</button>
+                    <button class="control-btn" onclick="triggerAnimation('victory')">🏆 Victory</button>
+                    <button class="control-btn special" onclick="triggerAnimation('special')">⚡ Special</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Market Simulation</h3>
+                <div class="control-buttons">
+                    <button class="control-btn market" onclick="simulateMarket('micro')">+0.5%</button>
+                    <button class="control-btn market" onclick="simulateMarket('small')">+2%</button>
+                    <button class="control-btn market" onclick="simulateMarket('medium')">+5%</button>
+                    <button class="control-btn market" onclick="simulateMarket('large')">+10%</button>
+                    <button class="control-btn market" onclick="simulateMarket('moon')">🚀 Moon</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="enhanced-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="comboCount">0</div>
+                <div class="stat-label">Combo Count</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="comboFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalPunches">0</div>
+                <div class="stat-label">Total Punches</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="punchesFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="powerLevel">100</div>
+                <div class="stat-label">Power Level</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="powerFill" style="width: 50%"></div>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="lastMove">Idle</div>
+                <div class="stat-label">Current State</div>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="stateFill" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="animation-queue">
+            <h3>Animation Queue</h3>
+            <div id="queueDisplay">
+                <span class="queue-item active">Idle</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EnhancedSpriteController {
+            constructor() {
+                this.fighter = document.getElementById('spriteFighter');
+                this.impactEffect = document.getElementById('impactEffect');
+                this.currentAnimation = 'idle';
+                this.animationQueue = [];
+                this.isAnimating = false;
+                this.stats = {
+                    comboCount: 0,
+                    totalPunches: 0,
+                    powerLevel: 100,
+                    maxCombo: 0
+                };
+                this.comboTimer = null;
+                this.particles = [];
+                
+                this.animationDurations = {
+                    'jab': 600,
+                    'cross': 800,
+                    'hook': 900,
+                    'uppercut': 1200,
+                    'combo': 2000,
+                    'victory': 2500,
+                    'defensive': 1500,
+                    'special': 3000
+                };
+
+                this.impactTypes = {
+                    'jab': 'small',
+                    'cross': 'medium',
+                    'hook': 'medium',
+                    'uppercut': 'large',
+                    'combo': 'large',
+                    'victory': 'large',
+                    'defensive': 'small',
+                    'special': 'special'
+                };
+
+                this.marketAnimations = {
+                    'micro': 'jab',
+                    'small': 'cross',
+                    'medium': 'hook',
+                    'large': 'uppercut',
+                    'moon': 'special'
+                };
+            }
+
+            triggerAnimation(type, intensity = 1.0) {
+                if (this.isAnimating && type !== 'defensive') {
+                    this.animationQueue.push({type, intensity});
+                    this.updateQueueDisplay();
+                    return;
+                }
+
+                this.isAnimating = true;
+                this.currentAnimation = type;
+
+                // Clear existing animation
+                this.fighter.className = 'sprite-fighter';
+                
+                // Add new animation
+                setTimeout(() => {
+                    this.fighter.classList.add(type);
+                    
+                    // Update stats
+                    this.updateStats(type);
+                    
+                    // Create effects
+                    this.createImpactEffect(type, intensity);
+                    this.createParticles(type, intensity);
+                    
+                    // Play sound (simulated)
+                    this.playSound(type);
+                    
+                    // Return to idle after animation
+                    setTimeout(() => {
+                        this.fighter.className = 'sprite-fighter idle';
+                        this.currentAnimation = 'idle';
+                        this.isAnimating = false;
+                        this.processQueue();
+                    }, this.animationDurations[type]);
+                    
+                }, 50);
+            }
+
+            updateStats(type) {
+                if (type !== 'victory' && type !== 'defensive') {
+                    this.stats.totalPunches++;
+                    
+                    // Combo system
+                    if (type === 'combo') {
+                        this.stats.comboCount += 3;
+                    } else {
+                        this.stats.comboCount++;
+                    }
+                    
+                    this.stats.maxCombo = Math.max(this.stats.maxCombo, this.stats.comboCount);
+                    
+                    // Reset combo timer
+                    clearTimeout(this.comboTimer);
+                    this.comboTimer = setTimeout(() => {
+                        this.stats.comboCount = 0;
+                        this.updateStatsDisplay();
+                    }, 5000);
+                }
+
+                // Power level changes
+                const powerChanges = {
+                    'jab': 2,
+                    'cross': 4,
+                    'hook': 3,
+                    'uppercut': 8,
+                    'combo': 15,
+                    'special': -30,
+                    'victory': 10,
+                    'defensive': -1
+                };
+
+                this.stats.powerLevel = Math.max(0, Math.min(200, 
+                    this.stats.powerLevel + (powerChanges[type] || 0)));
+
+                this.updateStatsDisplay();
+            }
+
+            updateStatsDisplay() {
+                document.getElementById('comboCount').textContent = this.stats.comboCount;
+                document.getElementById('totalPunches').textContent = this.stats.totalPunches;
+                document.getElementById('powerLevel').textContent = this.stats.powerLevel;
+                document.getElementById('lastMove').textContent = 
+                    this.currentAnimation.charAt(0).toUpperCase() + this.currentAnimation.slice(1);
+
+                // Update progress bars
+                document.getElementById('comboFill').style.width = 
+                    Math.min(100, (this.stats.comboCount / 10) * 100) + '%';
+                document.getElementById('punchesFill').style.width = 
+                    Math.min(100, (this.stats.totalPunches / 50) * 100) + '%';
+                document.getElementById('powerFill').style.width = 
+                    (this.stats.powerLevel / 200) * 100 + '%';
+                document.getElementById('stateFill').style.width = 
+                    this.isAnimating ? '100%' : '50%';
+            }
+
+            createImpactEffect(type, intensity) {
+                const impactType = this.impactTypes[type];
+                
+                // Position impact effect
+                this.impactEffect.style.top = '60%';
+                this.impactEffect.style.left = '50%';
+                this.impactEffect.style.transform = 'translateX(-50%)';
+                
+                // Clear existing classes
+                this.impactEffect.className = 'impact-effect';
+                
+                // Add impact type
+                setTimeout(() => {
+                    this.impactEffect.classList.add(impactType);
+                }, 100);
+            }
+
+            createParticles(type, intensity) {
+                const arena = document.querySelector('.enhanced-arena');
+                const particleCount = Math.floor(intensity * this.getParticleCount(type));
+                
+                for (let i = 0; i < particleCount; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.className = `particle ${this.getParticleType(type)}`;
+                        
+                        // Random position around impact area
+                        const centerX = 50;
+                        const centerY = 60;
+                        const spread = 15;
+                        
+                        particle.style.left = (centerX + (Math.random() - 0.5) * spread) + '%';
+                        particle.style.top = (centerY + (Math.random() - 0.5) * spread) + '%';
+                        
+                        arena.appendChild(particle);
+                        
+                        // Remove particle after animation
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                        }, 3000);
+                    }, i * 50);
+                }
+            }
+
+            getParticleCount(type) {
+                const counts = {
+                    'jab': 5,
+                    'cross': 8,
+                    'hook': 7,
+                    'uppercut': 12,
+                    'combo': 20,
+                    'victory': 25,
+                    'defensive': 3,
+                    'special': 30
+                };
+                return counts[type] || 5;
+            }
+
+            getParticleType(type) {
+                const types = {
+                    'jab': 'gold',
+                    'cross': 'orange',
+                    'hook': 'orange',
+                    'uppercut': 'red',
+                    'combo': 'red',
+                    'victory': 'gold',
+                    'defensive': 'gold',
+                    'special': 'special'
+                };
+                return types[type] || 'gold';
+            }
+
+            playSound(type) {
+                // Simulated sound feedback
+                console.log(`🔊 Playing sound: ${type}`);
+            }
+
+            processQueue() {
+                if (this.animationQueue.length > 0) {
+                    const next = this.animationQueue.shift();
+                    this.triggerAnimation(next.type, next.intensity);
+                    this.updateQueueDisplay();
+                }
+            }
+
+            updateQueueDisplay() {
+                const display = document.getElementById('queueDisplay');
+                let html = `<span class="queue-item active">${this.currentAnimation}</span>`;
+                
+                this.animationQueue.forEach(item => {
+                    html += `<span class="queue-item">${item.type}</span>`;
+                });
+                
+                display.innerHTML = html;
+            }
+
+            simulateMarket(gainType) {
+                const animationType = this.marketAnimations[gainType];
+                const intensities = {
+                    'micro': 0.5,
+                    'small': 1.0,
+                    'medium': 1.5,
+                    'large': 2.0,
+                    'moon': 3.0
+                };
+                
+                this.triggerAnimation(animationType, intensities[gainType]);
+                
+                // Simulate market feedback
+                console.log(`📈 Market simulation: ${gainType} gain triggered ${animationType}`);
+            }
+        }
+
+        // Initialize the enhanced sprite controller
+        const spriteController = new EnhancedSpriteController();
+
+        // Global functions for buttons
+        function triggerAnimation(type) {
+            spriteController.triggerAnimation(type);
+        }
+
+        function simulateMarket(gainType) {
+            spriteController.simulateMarket(gainType);
+        }
+
+        // Auto-demo sequence
+        function startAutoDemo() {
+            const sequence = [
+                {type: 'jab', delay: 2000},
+                {type: 'cross', delay: 3000},
+                {type: 'hook', delay: 3500},
+                {type: 'uppercut', delay: 4000},
+                {type: 'combo', delay: 5000},
+                {type: 'special', delay: 8000},
+                {type: 'victory', delay: 10000}
+            ];
+            
+            sequence.forEach(item => {
+                setTimeout(() => {
+                    spriteController.triggerAnimation(item.type);
+                }, item.delay);
+            });
+        }
+
+        // Start auto demo after page load
+        setTimeout(startAutoDemo, 3000);
+
+        // Update stats display every second
+        setInterval(() => {
+            spriteController.updateStatsDisplay();
+        }, 1000);
+    </script>
+</body>
+</html>
+
