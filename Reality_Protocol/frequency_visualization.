@@ -1,0 +1,38 @@
+// Real-time frequency visualization
+class AudioVisualizer {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.analyser = audioContext.createAnalyser();
+        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    }
+    
+    // Show 432Hz base frequency prominently
+    drawFrequencySpectrum() {
+        this.analyser.getByteFrequencyData(this.dataArray);
+        
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Highlight 432Hz frequency bin
+        const freq432Bin = Math.floor(432 * this.analyser.fftSize / audioContext.sampleRate);
+        
+        for (let i = 0; i < this.dataArray.length; i++) {
+            const barHeight = this.dataArray[i];
+            const x = (i / this.dataArray.length) * this.canvas.width;
+            
+            // Special highlighting for 432Hz and harmonics
+            if (i === freq432Bin || i === freq432Bin * 2 || i === freq432Bin * 3) {
+                this.ctx.fillStyle = '#FFD700'; // Gold for 432Hz harmonics
+            } else {
+                this.ctx.fillStyle = '#00FF88'; // Green for other frequencies
+            }
+            
+            this.ctx.fillRect(x, this.canvas.height - barHeight, 2, barHeight);
+        }
+        
+        // Label the 432Hz frequency
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('432Hz Base', freq432Bin * 2, 20);
+    }
+}
