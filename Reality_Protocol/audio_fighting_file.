@@ -1,0 +1,17 @@
+const fighterAudioProfiles = {
+    'bitcoin_bruiser': {
+        baseHarmonic: 432,
+        signature: [432, 864, 1296], // Strong, stable harmonics
+        personality: 'deep_powerful'
+    },
+    'ethereum_enforcer': {
+        baseHarmonic: 432,
+        signature: [432, 648, 1080], // Smart contract precision
+        personality: 'technical_precise'
+    },
+    'solana_speedster': {
+        baseHarmonic: 432,
+        signature: [432, 972, 1458], // Fast, agile harmonics
+        personality: 'quick_energetic'
+    }
+};
