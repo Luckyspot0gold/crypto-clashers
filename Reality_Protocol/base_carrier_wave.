@@ -1,0 +1,13 @@
+// Core 432Hz generation
+function generate432Hz(duration = 1.0) {
+    const sampleRate = 44100;
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = new Float32Array(samples);
+    
+    for (let i = 0; i < samples; i++) {
+        // Pure 432Hz sine wave
+        buffer[i] = Math.sin(2 * Math.PI * 432 * i / sampleRate);
+    }
+    
+    return buffer;
+}
