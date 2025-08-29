@@ -1,0 +1,13 @@
+Correlation_Frequency = 432Hz × (1 + (Asset1_Change + Asset2_Change) / 200)
+Divergence_Factor = |Asset1_Change - Asset2_Change| / 100
+Harmonic_Complexity = Base_Harmonics × (1 + Divergence_Factor)
+Band_Width_Factor = (Upper_Band - Lower_Band) / Current_Price
+Harmonic_Spread = Base_Harmonics × (1 + Band_Width_Factor)
+RSI_Frequency = 432Hz × (RSI_Value / 50)•RSI 30 (oversold):
+432Hz × 0.6 = 259.2Hz (lower, darker tone)•RSI 50 (neutral): 432Hz × 1.0 = 432Hz (base frequency)
+•RSI 70 (overbought): 432Hz × 1.4 = 604.8Hz (higher, brighter tone)
+MACD (Moving Average Convergence Divergence) 
+Rhythm:MACD_Rhythm_BPM = 60 + (MACD_Value × 30)
+•Positive MACD: Faster rhythm (bullish momentum)
+•Negative MACD: Slower rhythm (bearish momentum)
+•MACD crossovers: Rhythmic pattern changes
