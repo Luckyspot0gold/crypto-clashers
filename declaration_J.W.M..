@@ -1,0 +1,11 @@
+``bash
+# File Innovation Declaration with Wyoming SOS
+curl -X POST https://wyosos.wyo.gov/api/v4/innovations \
+  -H "Authorization: Bearer $WYOMING_API_KEY" \
+  -d '{
+    "entity_id": "REACT-2023-001",
+    "innovation_title": "Harmonic Resonance Market Sonification",
+    "description": "System mapping market data to harmonic indicators (HRI/SSS) with multi-sensory output",
+    "proof_of_concept": "https://github.com/RealityProtocol/sonic-engine/tree/v0.1",
+    "date_developed": "2025-08-27"
+  }'
