@@ -1,0 +1,35 @@
+flowchart TD
+    subgraph "Foundation Layer"
+        A[CDK Deployment<br/>Infrastructure as Code]
+        B[Revenue Engine<br/>Smart Contract]
+        C[GameFi Core<br/>Unity/WebGL Build]
+    end
+
+    subgraph "Orchestration Layer"
+        D[CI/CD Pipeline<br/>GitHub Actions]
+    end
+
+    subgraph "Execution Layer"
+        E[AWS Lambda<br/>Serverless Backend]
+        F[Amazon QLDB<br/>Immutable Ledger]
+        G[Amazon Bedrock<br/>AI Analytics]
+    end
+
+    subgraph "Presentation Layer"
+        H[Next.js Frontend<br/>trading.realityprotocol.io]
+        I[Web3 Integration<br/>Coinbase CDP, AVAX, HBAR]
+    end
+
+    A --> D
+    B --> D
+    C --> D
+
+    D --> E
+    D --> F
+    D --> G
+
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I
