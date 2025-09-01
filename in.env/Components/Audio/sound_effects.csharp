@@ -1,0 +1,154 @@
+using UnityEngine;
+using System.Collections.Generic;
+
+public class SoundManager : MonoBehaviour
+{
+    public static SoundManager Instance; // Singleton pattern for global access
+
+    [System.Serializable]
+    public class SoundCategory
+    {
+        public string name;
+        public AudioClip[] clips;
+        [Range(0f, 1f)] public float volume = 1f;
+        public bool loop = false;
+    }
+
+    public AudioSource effectsSource;
+    public AudioSource musicSource;
+    public AudioSource announcerSource;
+
+    public SoundCategory[] soundCategories; // Configure in Inspector
+    public AudioClip fightBellSound;
+    public AudioClip matSlapSound;
+
+    private Dictionary<string, SoundCategory> soundDictionary = new Dictionary<string, SoundCategory>();
+
+    void Awake()
+    {
+        // Singleton setup
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        InitializeSoundDictionary();
+    }
+
+    void InitializeSoundDictionary()
+    {
+        foreach (var category in soundCategories)
+        {
+            soundDictionary[category.name.ToLower()] = category;
+        }
+    }
+
+    // Your existing methods
+    public void PlayFightBell()
+    {
+        PlaySound(fightBellSound, 1f);
+    }
+
+    public void PlayMatSlap()
+    {
+        PlaySound(matSlapSound, 0.8f);
+    }
+
+    public void PlayAnnouncement()
+    {
+        if (announcerClips.Length > 0)
+        {
+            int randomIndex = Random.Range(0, announcerClips.Length);
+            PlaySound(announcerClips[randomIndex], 1f, announcerSource);
+        }
+    }
+
+    // NEW: Enhanced sound playing with category support
+    public void PlaySound(string categoryName, float pitchVariance = 0.1f)
+    {
+        if (soundDictionary.TryGetValue(categoryName.ToLower(), out SoundCategory category))
+        {
+            if (category.clips.Length > 0)
+            {
+                AudioClip clip = category.clips[Random.Range(0, category.clips.Length)];
+                PlaySound(clip, category.volume, effectsSource, pitchVariance, category.loop);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Sound category '{categoryName}' not found!");
+        }
+    }
+
+    // NEW: Core sound playing method with full control
+    public void PlaySound(AudioClip clip, float volume = 1f, AudioSource source = null, 
+                         float pitchVariance = 0f, bool loop = false)
+    {
+        if (clip == null) return;
+
+        AudioSource targetSource = source ?? effectsSource;
+        targetSource.clip = clip;
+        targetSource.volume = volume;
+        targetSource.loop = loop;
+        
+        if (pitchVariance > 0)
+        {
+            targetSource.pitch = 1f + Random.Range(-pitchVariance, pitchVariance);
+        }
+        else
+        {
+            targetSource.pitch = 1f;
+        }
+
+        targetSource.Play();
+    }
+
+    // NEW: Stop specific sound category
+    public void StopSound(string categoryName)
+    {
+        // Implementation for stopping sounds by category
+        if (soundDictionary.ContainsKey(categoryName.ToLower()))
+        {
+            effectsSource.Stop();
+        }
+    }
+
+    // NEW: Crossfade music tracks
+    public void SwitchMusic(AudioClip newMusic, float fadeDuration = 1f)
+    {
+        StartCoroutine(CrossfadeMusic(newMusic, fadeDuration));
+    }
+
+    private System.Collections.IEnumerator CrossfadeMusic(AudioClip newMusic, float duration)
+    {
+        float elapsed = 0f;
+        float initialVolume = musicSource.volume;
+        
+        // Fade out current music
+        while (elapsed < duration)
+        {
+            musicSource.volume = Mathf.Lerp(initialVolume, 0f, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        
+        // Switch clip and fade in
+        musicSource.Stop();
+        musicSource.clip = newMusic;
+        musicSource.Play();
+        
+        elapsed = 0f;
+        while (elapsed < duration)
+        {
+            musicSource.volume = Mathf.Lerp(0f, initialVolume, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+    }
+}
