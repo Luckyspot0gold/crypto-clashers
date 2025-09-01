@@ -6,10 +6,13 @@ and is protected by copyright laws and international treaty provisions.
 
 2. LICENSE GRANT
 Subject to your compliance with these terms, Luckyspot0gold grants you a 
-limited, non-exclusive, non-transferable, non-sublicensable license to 
-use the Software solely for your personal, non-commercial purposes.
+very limited, non-exclusive, non-transferable, non-sublicensable license or copy
+ of use to the Software solely for your personal, non-commercial purposes.
+Solo traders, families with income less than 250k annually, Students with I.D.
+are granted use of, but not for resale. 
 
-3. RESTRICTIONS
+
+4. RESTRICTIONS
 You may not:
 - Copy, modify, or create derivative works
 - Reverse engineer, decompile, or disassemble
@@ -18,6 +21,9 @@ You may not:
 
 4. VIOLATIONS
 Any unauthorized use will result in immediate termination of this license 
-and will subject you to legal action and damages.
+and will be subject to legal penalty, infringement, and will be sued for damages.
 
 Full EULA available at: https://www.stoneyard.cash/eula
+## Licensing
+This software is proprietary and confidential. Unauthorized use is prohibited.
+For licensing inquiries, contact: licensing@ stoneyardgames@proton.me
