@@ -1,0 +1,5 @@
+// Play your specific announcement
+SoundManager.Instance.PlaySound("announcer");
+
+// Or play with your existing method
+SoundManager.Instance.PlayAnnouncement();
