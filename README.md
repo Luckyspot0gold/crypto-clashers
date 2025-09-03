@@ -1,6 +1,6 @@
 # CryptoClashers.games
 ## Crypto Clashers Boxing
- *** Brought to you by StoneYard Games, Degan Stone McCrea & Justin William McCrea  ***
+ *** Brought to you by Reality Protocol LLC, Degan Stone McCrea & Justin William McCrea  ***
 *Automatically synced with your [v0.dev](https://v0.dev) deployments*
 
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/styrd-gaming/v0-krypt-o)
